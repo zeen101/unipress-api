@@ -1,8 +1,8 @@
 <?php
 /**
- * Registers zeen101's Leaky Paywall's UniPress API class
+ * Registers zeen101's UniPress API class
  *
- * @package zeen101's Leaky Paywall
+ * @package zeen101's UniPress API
  * @since 1.0.0
  */
 
@@ -11,9 +11,9 @@
  *
  * @since 1.0.0
  */
-if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
+if ( ! class_exists( 'UniPress_API' ) ) {
 	
-	class Leaky_Paywall_UniPress_API {
+	class UniPress_API {
 		
 		/**
 		 * Class constructor, puts things in motion
@@ -28,22 +28,24 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 			add_action( 'admin_print_styles', array( $this, 'admin_wp_print_styles' ) );
 			add_action( 'wp_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
 			add_action( 'admin_menu', array( $this, 'admin_menu' ) );
-			
+						
 			add_filter( 'leaky_paywall_subscriber_info_paid_subscriber_end', array( $this, 'leaky_paywall_subscriber_info_paid_subscriber_end' ) );
 			
 			add_action( 'wp', array( $this, 'process_requests' ), 15 );
+	        // Whenever you publish new content, notify UniPress Servers
+	        add_action( 'transition_post_status', array( $this, 'push_notification' ), 100, 3 );
 
 		}
 		
 		function admin_wp_enqueue_scripts( $hook_suffix ) {
 			if ( 'leaky-paywall_page_unipress-settings' === $hook_suffix )
-				wp_enqueue_script( 'leaky_paywall_js', ISSUEM_LP_UPAPI_URL . 'js/admin.js', array( 'jquery' ), ISSUEM_LP_UPAPI_VERSION );
+				wp_enqueue_script( 'unipress_admin_js', ISSUEM_LP_UPAPI_URL . 'js/admin.js', array( 'jquery' ), ISSUEM_LP_UPAPI_VERSION );
 		}
 		
 		function admin_wp_print_styles() {
 			global $hook_suffix;
 			if ( 'leaky-paywall_page_unipress-settings' === $hook_suffix )
-				wp_enqueue_style( 'leaky_paywall_admin_style', ISSUEM_LP_UPAPI_URL . 'css/admin.css', '', ISSUEM_LP_UPAPI_VERSION );
+				wp_enqueue_style( 'unipress_admin_css', ISSUEM_LP_UPAPI_URL . 'css/admin.css', '', ISSUEM_LP_UPAPI_VERSION );
 		}
 		
 		function wp_enqueue_scripts() {
@@ -59,7 +61,7 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 		}
 		
 		/**
-		 * Get zeen101's Leaky Paywall options
+		 * Get zeen101's UniPress API options
 		 *
 		 * @since 1.0.0
 		 */
@@ -68,6 +70,8 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 			$defaults = array( 
 				'device-limit' => 5,
 				'subscription-id' => 0,
+				'push-device-type' => 'all',
+				'push-url' => '',
 			);
 		
 			$defaults = apply_filters( 'unipress_api_settings_defaults', $defaults );
@@ -79,7 +83,7 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 		}
 		
 		/**
-		 * Update zeen101's Leaky Paywall options
+		 * Update zeen101's UniPress API options
 		 *
 		 * @since 1.0.0
 		 */
@@ -112,6 +116,21 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 					$settings['subscription-id'] = $_REQUEST['subscription-id'];
 				else
 					$settings['subscription-id'] = 0;
+					
+				if ( !empty( $_REQUEST['push-device-type'] ) && in_array( $_REQUEST['push-device-type'], array( 'all', 'iOS', 'Android' ) ) )
+					$settings['push-device-type'] = $_REQUEST['push-device-type'];
+				else
+					unset( $settings['push-device-type'] );
+					
+				if ( !empty( $_REQUEST['push-url'] ) ) {
+					$settings['push-url'] = trim( $_REQUEST['push-url'] );
+					if ( false === filter_var( $_REQUEST['push-url'], FILTER_VALIDATE_URL ) ) {
+						echo '<div class="error"><p><strong>' . __( 'Error invalid Push Notification URL.', 'unipress-api' ) . '</strong></p></div>';
+					}
+				} else {
+					unset( $settings['push-url'] );
+				}
+
 				
 				$this->update_settings( $settings );
 				$settings_saved = true;
@@ -123,7 +142,7 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 			if ( $settings_saved ) {
 				
 				// update settings notification ?>
-				<div class="updated"><p><strong><?php _e( "UniPress Settings Updated.", 'unipress-api' );?></strong></p></div>
+				<div class="updated"><p><strong><?php _e( 'UniPress Settings Updated.', 'unipress-api' );?></strong></p></div>
 				<?php
 				
 			}
@@ -149,17 +168,17 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
                         
                         <div class="inside">
                         
-                        <table id="leaky_paywall_administrator_options" class="leaky-paywall-table">
+                        <table id="unipress_administrator_options" class="unipress-table">
                                                
                         	<tr>
-                                <th><?php _e( 'Device Limit', 'issuem-leaky-paywall' ); ?></th>
+                                <th><?php _e( 'Device Limit', 'unipress-api' ); ?></th>
                                 <td>
                                 	<input type="number" id="device-limit" class="small-text" name="device-limit" value="<?php echo htmlspecialchars( stripcslashes( $settings['device-limit'] ) ); ?>" />
                                 	<p class="description"><?php _e( 'The number of mobile devices a user can register', 'unipress-api' ); ?></p>
                                 </td>
                             </tr>
                         	<tr>
-                                <th><?php _e( 'Subscription ID', 'issuem-leaky-paywall' ); ?></th>
+                                <th><?php _e( 'Subscription ID', 'unipress-api' ); ?></th>
                                 <td>
 									<?php
 									$lp_settings = get_leaky_paywall_settings();
@@ -176,11 +195,29 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 									?>
                                 </td>
                             </tr>
+                        	<tr>
+                                <th><?php _e( 'Push Notification Device Type(s)', 'unipress-api' ); ?></th>
+                                <td>
+									<?php
+									echo '<select name="push-device-type">';
+									echo '<option value="all" ' . selected( 'all', $settings['device-type'], true ) . '>' . __( 'iOS and Android', 'unipress-api' ) . '</option>';
+									echo '<option value="iOS" ' . selected( 'iOS', $settings['device-type'], true ) . '>' . __( 'iOS', 'unipress-api' ) . '</option>';
+									echo '<option value="Android" ' . selected( 'Android', $settings['device-type'], true ) . '>' . __( 'Android', 'unipress-api' ) . '</option>';
+									echo '</select>';
+									?>
+                                </td>
+                            </tr>            
+                        	<tr>
+                                <th><?php _e( 'Push Notification URL', 'unipress-api' ); ?></th>
+                                <td>
+                                	<input type="text" id="push-url" class="large-text" name="push-url" value="<?php echo htmlspecialchars( stripcslashes( $settings['push-url'] ) ); ?>" />
+                                </td>
+                            </tr>
                             
                         </table>
                                                                           
                         <p class="submit">
-                            <input class="button-primary" type="submit" name="update_leaky_paywall_settings" value="<?php _e( 'Save Settings', 'issuem-leaky-paywall' ) ?>" />
+                            <input class="button-primary" type="submit" name="update_unipress_api_settings" value="<?php _e( 'Save Settings', 'unipress-api' ) ?>" />
                         </p>
 
                         </div>
@@ -207,6 +244,8 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 			
 			if ( 0 !== $current_user->ID ) {
 				$devices = get_user_meta( $current_user->ID, 'unipress-devices' );
+				$content .= '<div id="unipress-devices">';
+				
 				$content .= '<div id="unipress-device-list">';
 				if ( !empty( $devices ) ) {
 					foreach( $devices as $device ) {
@@ -222,16 +261,38 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 					$content .= '<p>' . __( 'You have reached your device limit, you must remove a device before adding new ones', 'unipress-api' ) . '</p>';
 				}
 				$content .= '</div>';
+				
+				$content .= '</div>';
 			}
 			
 			return $content;
 			
 		}
 		
+		function push_notification( $new_status, $old_status, $post ) {
+			
+			if ( 'publish' === $new_status && 'publish' !== $old_status ) {
+
+				$settings = $this->get_settings();
+								
+				$args = array(
+					'headers'	=> array( 'content-type' => 'application/json' ),
+					'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'] ) ),
+				);
+				$response = wp_remote_post( $settings['push-url'], $args );
+				
+				if ( is_wp_error( $response ) ) {
+					error_log( sprint_f( __( 'UniPress Push Notification Error: %s', 'unipress-api' ), $response->get_error_message() ) );
+				}
+			
+			}
+			
+		}
+		
 		function process_requests() {
 			
 			if ( !empty( $_REQUEST['unipress-api'] ) ) {
-				
+
 				switch ( $_REQUEST['unipress-api'] ) {
 					
 					case 'get-menu':
@@ -254,8 +315,16 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 						$this->api_response( $this->get_ad_data() );
 						break;
 						
+					case 'verify-device-id':
+						$this->api_response( $this->verify_device_id() );
+						break;
+						
 					case 'set-subscription':
 						$this->api_response( $this->set_subscription() );
+						break;
+						
+					case 'update-subscriber':
+						$this->api_response( $this->update_subscriber() );
 						break;
 						
 					case 'get-post-types':
@@ -307,6 +376,8 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 					return __( 'Device not authorized', 'unipress-api' );
 				case '402':
 					return __( 'Subscription required', 'unipress-api' );
+				case '409':
+					return __( 'Conflict', 'unipress-api' );
 				case '502':
 					return __( 'Bad Gateway', 'unipress-api' );
 				default:
@@ -335,11 +406,13 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 		
 		//parse data
 		function get_content_list() {
-			$args['page'] 			= !empty( $_REQUEST['page'] ) 			? $_REQUEST['page'] 			: 0;
-			$args['posts_per_page'] = !empty( $_REQUEST['posts_per_page'] ) ? $_REQUEST['posts_per_page'] 	: 10;
-			$args['orderby'] 		= !empty( $_REQUEST['orderby'] ) 		? $_REQUEST['orderby'] 			: 'post_date';
-			$args['order'] 			= !empty( $_REQUEST['order'] ) 			? $_REQUEST['order'] 			: 'DESC';
-			$args['post_type'] 		= !empty( $_REQUEST['post_type'] ) 		? $_REQUEST['post_type'] 		: array( 'post' );
+			global $post;
+
+			$args['posts_per_page'] = !empty( $_REQUEST['posts_per_page'] ) ? $_REQUEST['posts_per_page'] 						: 10;
+			$args['offset'] 		= !empty( $_REQUEST['page'] ) 			? $_REQUEST['posts_per_page'] * $_REQUEST['page'] 	: 0;
+			$args['orderby'] 		= !empty( $_REQUEST['orderby'] ) 		? $_REQUEST['orderby'] 								: 'post_date';
+			$args['order'] 			= !empty( $_REQUEST['order'] ) 			? $_REQUEST['order'] 								: 'DESC';
+			$args['post_type'] 		= !empty( $_REQUEST['post_type'] ) 		? $_REQUEST['post_type'] 							: array( 'post' );
 
 			if ( !empty( $_REQUEST['taxonomy'] ) && !empty( $_REQUEST['term'] ) ) {
 			
@@ -363,6 +436,7 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 			$posts = get_posts( $args );
 			
 			foreach( $posts as &$post ) {
+				setup_postdata( $post ); 
 				$args = array(
 					'post_type' 		=> 'attachment',
 					'posts_per_page' 	=> -1,
@@ -377,6 +451,8 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 						$attachments[] = wp_get_attachment_metadata( $attachment->ID );
 					}
 				}
+				
+				$post->post_excerpt = get_the_excerpt();
 				
 				$post->attachment_baseurl = $upload_dir['baseurl'];
 				$post->attachments = $attachments;
@@ -418,6 +494,10 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 					}
 					
 				}
+				
+				$post = apply_filters( 'unipress_api_post', $post );
+				$post = apply_filters( 'unipress_api_get_content_list_post', $post );
+					
 			}
 			
 			$response = array(
@@ -427,7 +507,6 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 			return $response;
 		}
 		
-		//tonight
 		function get_article() {
 			try {
 				if ( empty( $_REQUEST['article-id'] ) ) {
@@ -439,11 +518,54 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 				if ( empty( $_REQUEST['device-id'] ) ) {
 					throw new Exception( __( 'Missing Device ID.', 'unipress-api' ), 400 );
 				} else {
-					$restrictions = unipress_api_get_user_restrictions_by_device_id( $_REQUEST['device-id'] );
+					$device_id = $_REQUEST['device-id'];
+					$restrictions = unipress_api_get_user_restrictions_by_device_id( $device_id );
 				}
 				
+				global $post;
 				$upload_dir = wp_upload_dir();
 				$post = get_post( $_REQUEST['article-id'] );
+				setup_postdata( $post ); 
+
+				$response['http_code'] = 200;
+				$lp_settings = get_leaky_paywall_settings();
+				$post->unipress_restrictions = $restrictions;
+				$post->unipress_article_restriction = false;
+				$post->unipress_article_count = 0;
+				$post->unipress_article_limit = false;
+				$post->unipress_article_remaining = false;
+				
+				if ( !empty( $restrictions['post_types'] ) ) {
+					
+					foreach( $restrictions['post_types'] as $key => $restriction ) {
+						
+						if ( $post->post_type == $restriction['post_type'] ) {
+						
+							if ( 0 <= $restriction['allowed_value'] ) {
+						
+								$post_type_id = $key;
+								$restricted_post_type = $restriction['post_type'];
+								$is_restricted = true;
+								$post->unipress_article_restriction = $restriction;
+								$post->unipress_article_count = 0;
+								$post->unipress_article_limit = $restriction['allowed_value'];
+								
+								if ( !empty( $available_content[$restricted_post_type] ) ) {
+									$post->unipress_article_count = count( $available_content[$restricted_post_type] );
+									$post->unipress_article_remaining = $restriction['allowed_value'] - count( $available_content[$restricted_post_type] );
+								} else {
+									$post->unipress_article_remaining = $restriction['allowed_value'];
+								}
+							
+								break;
+								
+							}
+							
+						}
+						
+					}
+
+				}
 			
 				if ( !empty( $post ) ) {
 					$args = array(
@@ -460,6 +582,8 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 							$attachments[] = wp_get_attachment_metadata( $attachment->ID );
 						}
 					}
+					
+					$post->post_excerpt = get_the_excerpt();
 					
 					$post->attachment_baseurl = $upload_dir['baseurl'];
 					$post->attachments = $attachments;
@@ -502,12 +626,129 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 						
 					}
 					
-				}
+					$post = apply_filters( 'unipress_api_post', $post );
+					$post = apply_filters( 'unipress_api_get_article_post', $post );
 					
-				$response = array(
-					'http_code' => 200,
-					'body' 		=> $post,
-				);
+				}
+												
+			    $level_id = unipress_api_get_user_level_id_by_device_id( $device_id );
+				$visibility = get_post_meta( $post->ID, '_issuem_leaky_paywall_visibility', true );
+								
+				if ( false !== $visibility && !empty( $visibility['visibility_type'] ) && 'default' !== $visibility['visibility_type'] ) {
+											
+					switch( $visibility['visibility_type'] ) {
+						
+						case 'only':
+							if ( !in_array( $level_id, $visibility['only_visible'], true ) ) {
+								$is_restricted = true;
+								$post->visible = false;
+							}
+							break;
+							
+						case 'always':
+							if ( in_array( -1, $visibility['always_visible'] ) || in_array( $level_id, $visibility['always_visible'] ) ) { //-1 = Everyone
+								$is_restricted = false;
+								$post->visible = true;
+							}
+							break;
+						
+						case 'onlyalways':
+							if ( !in_array( $level_id, $visibility['only_always_visible'] ) ) {
+								$is_restricted = true;
+								$post->visible = false;
+							} else {
+								$is_restricted = false;
+								$post->visible = true;
+							}
+							break;
+						
+						
+					}
+					
+					if ( $is_restricted ) {
+						$response = array(
+							'http_code' => 403,
+							'body' 		=> $post,
+						);
+						return $response;
+					}
+					
+				}
+				
+				$is_restricted = apply_filters( 'unipress_filter_is_restricted', $is_restricted, $restrictions, $post );
+
+				if ( $is_restricted ) {
+					
+					switch ( $lp_settings['cookie_expiration_interval'] ) {
+						case 'hour':
+							$multiplier = 60 * 60; //seconds in an hour
+							break;
+						case 'day':
+							$multiplier = 60 * 60 * 24; //seconds in a day
+							break;
+						case 'week':
+							$multiplier = 60 * 60 * 24 * 7; //seconds in a week
+							break;
+						case 'month':
+							$multiplier = 60 * 60 * 24 * 7 * 4; //seconds in a month (4 weeks)
+							break;
+						case 'year':
+							$multiplier = 60 * 60 * 24 * 7 * 52; //seconds in a year (52 weeks)
+							break;
+					}
+					$expiration = time() + ( $lp_settings['cookie_expiration'] * $multiplier );
+					
+					$cookie = get_option( 'unipress_cookie_' . $device_id, array() );
+					if ( !empty( $cookie ) )
+						$available_content = maybe_unserialize( $cookie );
+					
+					if ( empty( $available_content[$restricted_post_type] ) )
+						$available_content[$restricted_post_type] = array();							
+				
+					foreach ( $available_content[$restricted_post_type] as $key => $restriction ) {
+						
+						if ( time() > $restriction || 7200 > $restriction ) { 
+							//this post view has expired
+							//Or it is very old and based on the post ID rather than the expiration time
+							unset( $available_content[$restricted_post_type][$key] );
+							
+						}
+						
+					}
+												
+					if( -1 != $restrictions['post_types'][$post_type_id]['allowed_value'] ) { //-1 means unlimited
+						
+						$post->unipress_article_limit = $restrictions['post_types'][$post_type_id]['allowed_value'];
+
+						if ( $restrictions['post_types'][$post_type_id]['allowed_value'] > count( $available_content[$restricted_post_type] ) ) { 
+						
+							if ( !array_key_exists( $post->ID, $available_content[$restricted_post_type] ) ) {
+								
+								$available_content[$restricted_post_type][$post->ID] = $expiration;
+							
+							}
+							
+						} else {
+						
+							if ( !array_key_exists( $post->ID, $available_content[$restricted_post_type] ) ) {
+
+								$response['http_code'] = 401;
+													
+							}
+							
+						}
+						
+						$post->unipress_article_count = count( $available_content[$restricted_post_type] );
+					
+					}
+					
+					$serialized_available_content = maybe_serialize( $available_content );
+					update_option( 'unipress_cookie_' . $device_id, $serialized_available_content );
+					
+				}
+				
+				$response['body'] = $post;
+				
 				return $response;
 			}
 			catch ( Exception $e ) {
@@ -598,7 +839,7 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 						
 						if ( !empty( $ad_link ) ) {
 							$img_id = get_post_thumbnail_id( $ad->ID );
-							$ad_img = wp_get_attachment_image_src( $img_id, 'full' ); ;
+							$ad_img = wp_get_attachment_image_src( $img_id, 'unipress-' . $_REQUEST['device-type'] ); ;
 							
 							if ( !empty( $ad_img ) ) {
 								$body[] = array(
@@ -628,7 +869,32 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 			}
 		}
 		
-		//curl -H "Content-Type: application/json" -d '{"device-id":"1234","device-type":"iOS","receipt":"true"}' http://issuem.lewayotte.com/?unipress-api=set-subscription
+		function verify_device_id() {
+			try {
+				if ( empty( $_REQUEST['device-id'] ) ) {
+					throw new Exception( __( 'Missing Device ID.', 'unipress-api' ), 400 );
+				} else {
+					$user = unipress_api_get_user_by_device_id( $_REQUEST['device-id'] );
+					if ( empty( $user ) ) {
+						$response = array(
+							'http_code' => 200,
+							'body' 		=> __( 'No user found.','unipress-api' ),
+						);
+						return $response;
+					} else {
+						throw new Exception( __( 'User already exists.', 'unipress-api' ), 409 );
+					}
+				}
+			}
+			catch ( Exception $e ) {
+				$response = array(
+					'http_code' => $e->getCode(),
+					'body' 		=> $e->getMessage(),
+				);
+				return $response;
+			}
+		}
+		
 		function set_subscription() {
 			try {
 				$input = file_get_contents('php://input');
@@ -696,20 +962,138 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 				);
 										
 				if ( $existing_customer ) {
-					leaky_paywall_update_subscriber( $unique_hash, $email, $customer_id, $meta );
-					$response = array(
-						'http_code' => 201,
-						'body' 		=> __( 'Subscription Update', 'unipress-api' ),
-					);
+					$user_id = leaky_paywall_update_subscriber( $unique_hash, $email, $customer_id, $meta );
+					if ( !empty( $user_id ) ) {
+						$response = array(
+							'http_code' => 201,
+							'body' 		=> __( 'Subscription Update', 'unipress-api' ),
+						);
+					}
 				} else {
 					$meta['created'] = date_i18n( 'Y-m-d H:i:s' );
-					leaky_paywall_new_subscriber( $unique_hash, $email, $customer_id, $meta );
+					$user_id = leaky_paywall_new_subscriber( $unique_hash, $email, $customer_id, $meta );
+					if ( !empty( $user_id ) ) {
+						$response = array(
+							'http_code' => 200,
+							'body' 		=> __( 'Subscription Created', 'unipress-api' ),
+						);
+					}
+				}
+				
+				$devices = get_user_meta( $user_id, 'unipress-devices' );
+				
+				if ( !empty( $user_id ) ) {
+					if ( empty( $devices ) || !in_array( $post['device-id'], $devices ) ) {
+						add_user_meta( $user_id, 'unipress-devices', $post['device-id'] );
+					}
+				} else {
 					$response = array(
-						'http_code' => 200,
-						'body' 		=> __( 'Subscription Created', 'unipress-api' ),
+						'http_code' => 417,
+						'body' 		=> __( 'Unable to create subscriber.', 'unipress-api' ),
 					);
 				}
 				
+				return $response;
+			}
+			catch ( Exception $e ) {
+				$response = array(
+					'http_code' => $e->getCode(),
+					'body' 		=> $e->getMessage(),
+				);
+				return $response;
+			}
+		}	
+		
+		function update_subscriber() {
+			try {
+				$input = file_get_contents('php://input');
+				$post = json_decode( $input, TRUE ); 
+				
+				if ( empty( $post['device-id'] ) ) {
+					throw new Exception( __( 'Missing Device ID.', 'unipress-api' ), 400 );
+				}
+				
+				if ( empty( $post['device-type'] ) ) {
+					throw new Exception( __( 'Missing Device Type.', 'unipress-api' ), 400 );
+				} else {
+					if ( !( 'ios' === strtolower( $post['device-type'] ) || 'android' === strtolower( $post['device-type'] ) ) ) {
+						throw new Exception( __( 'Invalid Device Type. Must be iOS or Android.', 'unipress-api' ), 400 );						
+					}
+				}
+				
+				if ( empty( $post['email'] ) ) {
+					throw new Exception( __( 'Missing Email Address.', 'unipress-api' ), 400 );
+				} else {
+					$email = trim( $post['email'] );
+				}
+				if ( !is_email( $email ) ) {
+					throw new Exception( __( 'Invalid Email Address.', 'unipress-api' ), 400 );
+				}
+				
+				if ( empty( $post['username'] ) ) {
+					throw new Exception( __( 'Missing Username.', 'unipress-api' ), 400 );
+				} else {
+					$username = trim( $post['username'] );
+				}
+				
+				if ( empty( $post['password'] ) ) {
+					throw new Exception( __( 'Missing Password.', 'unipress-api' ), 400 );
+				} else {
+					$password = $post['password']; //don't trim, incase they add a space at the end of their password on purpose...
+				}
+				
+				$user = unipress_api_get_user_by_device_id( $post['device-id'] );
+				
+				if ( !empty( $user ) ) {
+					$response = array(
+						'http_code' => '201',
+						'body' 		=> '', //unknown, yet
+					);
+				
+					//This device ID already has a user
+					if ( $user->user_email !== $email ) {
+						$existing_user = get_user_by( 'email', $email );
+						if ( empty( $existing_user ) ) {
+							$userdata = array(
+								'ID' 			=> $user->ID,
+								'user_email' 	=> $email,
+							);
+							$user_id = wp_update_user( $userdata );
+							if ( !empty( $user_id ) && !is_wp_error( $user_id ) ) {
+								$response['body'][] = 'Subscriber Email Updated.';
+							} else if ( is_wp_error( $user_id ) ) {
+								throw new Exception( sprintf( __( 'Unable to update the subscriber email address: %s', 'unipress-api' ), $user_id->get_error_message() ), 400 );
+							} else {
+								throw new Exception( __( 'Unable to update the subscriber email address: Reason Unknown.', 'unipress-api' ), 400 );
+							}
+						} else {
+							throw new Exception( __( 'Email address already exists.', 'unipress-api' ), 409 );
+						}
+					}
+					
+					if ( $user->user_login !== $username ) { //don't need to update if we're the same username :)
+						$existing_user = get_user_by( 'login', $username );
+						if ( empty( $existing_user ) ) {
+							global $wpdb;							
+							$sql = "UPDATE {$wpdb->users} SET user_login = %s WHERE ID = %d";
+							$sql = $wpdb->prepare( $sql, $username, $user->ID );
+							$result = $wpdb->query( $sql );
+							if ( false === $result ) {
+								throw new Exception( __( 'Unable to update the subscriber username: Reason Unknown.', 'unipress-api' ), 400 );
+							} else {
+								$response['body'][] = 'Subscriber Username Updated.';
+							}
+						} else {
+							throw new Exception( __( 'Username already exists.', 'unipress-api' ), 409 );
+						}
+					}
+					
+					wp_set_password( $password, $user->ID );
+					$response['body'][] = 'Subscriber Password Updated.';
+				} else {
+					throw new Exception( __( 'Unable to find valid subscription for this user.', 'unipress-api' ), 400 );
+				}
+								
 				return $response;
 			}
 			catch ( Exception $e ) {
@@ -750,6 +1134,17 @@ if ( ! class_exists( 'Leaky_Paywall_UniPress_API' ) ) {
 				$args['status']		= !empty( $_REQUEST['status'] ) 	? $_REQUEST['status'] 	: 'approve';
 				
 				$comments = get_comments( $args );
+				
+				if ( !empty( $comments ) ) {
+					
+					foreach( $comments as &$comment ) {
+						
+						$hash = md5( strtolower( trim( $comment->comment_author_email ) ) );
+						$comment->gravatar_url = 'http://www.gravatar.com/avatar/' . $hash;
+						
+					}
+					
+				}
 					
 				$response = array(
 					'http_code' => 200,

@@ -3,7 +3,7 @@
 if ( !function_exists( 'get_unipress_api_settings' ) ) {
 
 	/**
-	 * Helper function to get zeen101's Leaky Paywall settings for current site
+	 * Helper function to get zeen101's UniPress settings for current site
 	 *
 	 * @since 1.0.0
 	 *
@@ -36,10 +36,10 @@ if ( !function_exists( 'unipress_api_device_row' ) ) {
 
 			$return  = '<div class="unipress-device-row">';
 			$return .= '<div class="device-row-column-1">';
-			$return .= $device;
+			$return .= '<span data-device-id="' . $device . '" class="delete-device">&times;</span>';
 			$return .= '</div>';
 			$return .= '<div class="device-row-column-2">';
-			$return .= '<span data-device-id="' . $device . '" class="delete-device">&times;</span>';
+			$return .= $device;
 			$return .= '</div>';
 			$return .= '</div>';
 
@@ -106,18 +106,30 @@ if ( !function_exists( 'unipress_api_get_user_restrictions_by_device_id' ) ) {
 	function unipress_api_get_user_restrictions_by_device_id( $device_id ) {
 	    $lp_settings = get_leaky_paywall_settings();
 	    $restrictions = $lp_settings['restrictions'];
-		    
-		$user = unipress_api_get_user_by_device_id( $device_id );
-		  
-	    if ( !empty( $user ) ) {
-			$mode = 'off' === $lp_settings['test_mode'] ? 'live' : 'test';
-		    $level_id = get_user_meta( $user->ID, '_issuem_leaky_paywall_' . $mode . '_level_id', true );
-			$level_id = apply_filters( 'get_leaky_paywall_subscription_level_level_id', $level_id );
-			if ( false !== $level_id && !empty( $lp_settings['levels'][$level_id] ) ) {
-				$restrictions = $lp_settings['levels'][$level_id];
-			}
-	    }
+	    $level_id = unipress_api_get_user_level_id_by_device_id( $device_id );
+	    
+		if ( false !== $level_id && !empty( $lp_settings['levels'][$level_id] ) ) {
+			$restrictions = $lp_settings['levels'][$level_id];
+		}
+
 		return $restrictions;
+	}
+	
+}
+
+if ( !function_exists( 'unipress_api_get_user_level_id_by_device_id' ) ) {
+	
+	function unipress_api_get_user_level_id_by_device_id( $device_id ) {
+		if ( $user = unipress_api_get_user_by_device_id( $device_id ) ) {
+			$settings = get_leaky_paywall_settings();
+			$mode = 'off' === $settings['test_mode'] ? 'live' : 'test';
+
+			$level_id = get_user_meta( $user->ID, '_issuem_leaky_paywall_' . $mode . '_level_id', true );
+			$level_id = apply_filters( 'get_leaky_paywall_subscription_level_level_id', $level_id );
+			return $level_id;
+		}
+		
+		return false;
 	}
 	
 }
@@ -211,4 +223,53 @@ if ( !function_exists( 'unipress_api_get_ip_address' ) ) {
 	
 	}
 
+}
+
+if ( !function_exists( 'unipress_api_leaky_paywall_has_user_paid' ) ) {
+	
+	function unipress_api_leaky_paywall_has_user_paid( $return, $payment_gateway, $payment_status, $subscriber_id, $plan, $expires ) {
+		
+		switch ( strtolower( $payment_gateway ) ) {
+			
+			case 'ios':
+			case 'android':					
+				switch( strtolower( $payment_status ) ) {
+				
+					case 'active':
+					case 'refunded':
+					case 'refund':
+						if ( $expires === '0000-00-00 00:00:00' )
+							return 'unlimited';
+							
+						if ( strtotime( $expires ) > time() )
+							return $expires;
+						else
+							return false;
+						break;
+					case 'cancelled':
+					case 'canceled':
+						if ( $expires === '0000-00-00 00:00:00' )
+							return false;
+						else
+							return 'canceled';
+					case 'reversed':
+					case 'buyer_complaint':
+					case 'denied' :
+					case 'expired' :
+					case 'failed' :
+					case 'voided' :
+					case 'deactivated' :
+						return false;
+						break;
+					
+				}
+
+				break;
+			
+		}
+		
+		return $return;
+		
+	}
+	add_filter( 'leaky_paywall_has_user_paid', 'unipress_api_leaky_paywall_has_user_paid', 10, 6 );
 }

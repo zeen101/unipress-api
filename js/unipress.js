@@ -15,14 +15,16 @@ $unipress(document).ready(function($) {
 	$( 'div#unipress-device-list' ).on( 'click', 'span.delete-device', function( event ) {
 		event.preventDefault();
 		parent = this;
-        var data = {
-            'action': 'unipress-api-delect-device-row',
-            'device-id': $( this ).data( 'device-id' )
-        }
-        console.log( data );
-        $.post( ajax_object.ajax_url, data, function( response ) {
-	        $( parent ).closest( '.unipress-device-row' ).remove();
-        });
+        if ( confirm( 'Are you sure you want to delete this device?' ) ) {
+	        var data = {
+	            'action': 'unipress-api-delect-device-row',
+	            'device-id': $( this ).data( 'device-id' )
+	        }
+	        console.log( data );
+	        $.post( ajax_object.ajax_url, data, function( response ) {
+		        $( parent ).closest( '.unipress-device-row' ).remove();
+	        });
+		}
 	});
 		
 });
