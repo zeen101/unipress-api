@@ -273,3 +273,14 @@ if ( !function_exists( 'unipress_api_leaky_paywall_has_user_paid' ) ) {
 	}
 	add_filter( 'leaky_paywall_has_user_paid', 'unipress_api_leaky_paywall_has_user_paid', 10, 6 );
 }
+
+if ( !function_exists( 'unipress_leaky_paywall_subscriber_payment_gateways' ) ) {
+	
+	function unipress_leaky_paywall_subscriber_payment_gateways( $payment_gateways ) {
+		$payment_gateways['ios']     = __( 'Apple Payment Gateway', 'unipress-api' );
+		$payment_gateways['android'] = __( 'Google Payment Gateway', 'unipress-api' );
+		return $payment_gateways;
+	}
+	add_filter( 'leaky_paywall_subscriber_payment_gateways', 'unipress_leaky_paywall_subscriber_payment_gateways' );
+	
+}
