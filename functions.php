@@ -3,7 +3,7 @@
 if ( !function_exists( 'get_unipress_api_settings' ) ) {
 
 	/**
-	 * Helper function to get zeen101's UniPress settings for current site
+	 * Helper function to get UniPress API settings for current site
 	 *
 	 * @since 1.0.0
 	 *

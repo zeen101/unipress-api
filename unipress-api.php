@@ -1,18 +1,18 @@
 <?php
 /**
- * Main PHP file used to for initial calls to zeen101's Leak Paywall classes and functions.
+ * Main PHP file used to for initial calls to UniPress API classes and functions.
  *
- * @package zeen101's Leak Paywall - UniPress API
+ * @package UniPress API
  * @since 1.0.0
  */
  
 /*
 Plugin Name: UniPress API
-Plugin URI: http://zeen101.com/
-Description: A premium WordPress plugin by zeen101.
-Author: zeen101 Development Team
+Plugin URI: http://getunipress.com/
+Description: A premium WordPress plugin by UniPress.
+Author: UniPress Development Team
 Version: 1.0.0
-Author URI: http://zeen101.com/
+Author URI: http://getunipress.com/
 Tags:
 */
 
@@ -30,7 +30,7 @@ define( 'ISSUEM_LP_UPAPI_BASENAME', plugin_basename( __FILE__ ) );
 define( 'ISSUEM_LP_UPAPI_REL_DIR', 	dirname( ISSUEM_LP_UPAPI_BASENAME ) );
 
 /**
- * Instantiate Pigeon Pack class, require helper files
+ * Instantiate UniPress API class, require helper files
  *
  * @since 1.0.0
  */

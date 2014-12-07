@@ -1,8 +1,8 @@
 <?php
 /**
- * Registers zeen101's UniPress API class
+ * Registers UniPress API class
  *
- * @package zeen101's UniPress API
+ * @package UniPress API
  * @since 1.0.0
  */
 
@@ -61,7 +61,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 		}
 		
 		/**
-		 * Get zeen101's UniPress API options
+		 * Get UniPress API options
 		 *
 		 * @since 1.0.0
 		 */
@@ -83,7 +83,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 		}
 		
 		/**
-		 * Update zeen101's UniPress API options
+		 * Update UniPress API options
 		 *
 		 * @since 1.0.0
 		 */
@@ -156,7 +156,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
             
                 <form id="issuem" method="post" action="">
 
-                    <h2 style='margin-bottom: 10px;' ><?php _e( "zeen101's UniPress Settings", 'unipress-api' ); ?></h2>
+                    <h2 style='margin-bottom: 10px;' ><?php _e( "UniPress Settings", 'unipress-api' ); ?></h2>
                 
                     <?php do_action( 'unipress_api_settings_form_start', $settings ); ?>
                     
@@ -282,7 +282,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$response = wp_remote_post( $settings['push-url'], $args );
 				
 				if ( is_wp_error( $response ) ) {
-					error_log( sprint_f( __( 'UniPress Push Notification Error: %s', 'unipress-api' ), $response->get_error_message() ) );
+					error_log( sprintf( __( 'UniPress Push Notification Error: %s', 'unipress-api' ), $response->get_error_message() ) );
 				}
 			
 			}
@@ -340,10 +340,13 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						break;
 						
 					default:
-						$response = array(
-							'http_code' => 502,
-							'body' 		=> __( 'Unrecognized Request Sent', 'unipress-api' ),
-						);
+						$response = apply_filters( 'process-unipress-api-request-' . $_REQUEST['unipress-api'], false );
+						if ( empty( $response ) ) {
+							$response = array(
+								'http_code' => 502,
+								'body' 		=> __( 'Unrecognized Request Sent', 'unipress-api' ),
+							);
+						}
 						$this->api_response( $response );
 						break;
 					
@@ -370,6 +373,8 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					return __( 'Success', 'unipress-api' );
 				case '201':
 					return __( 'Created', 'unipress-api' );
+				case '204':
+					return __( 'No Content', 'unipress-api' );
 				case '400':
 					return __( 'Bad Request', 'unipress-api' );
 				case '401':
@@ -1200,7 +1205,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					'comment_author_email' 	=> $user->user_email,
 					'comment_content' 		=> $post['comment'],
 					'comment_type' 			=> '',
-					'comment_parent' 		=> 0, //we may want to include parent comment replies in the future
+					'comment_parent' 		=> !empty( $post['parent-comment-id'] ) ? $post['parent-comment-id'] : 0,
 					'user_id' 				=> $user->ID,
 					'comment_author_IP' 	=> unipress_api_get_ip_address(),
 					'comment_agent' 		=> $post['device-type'],
