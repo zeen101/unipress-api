@@ -38,26 +38,86 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 		}
 		
 		function admin_wp_enqueue_scripts( $hook_suffix ) {
+
+            if ( isset( $_REQUEST['post_type'] ) ) {
+
+                    $post_type = $_REQUEST['post_type'];
+
+            } else {
+
+                    if ( isset( $_REQUEST['post'] ) )
+                            $post_id = (int) $_REQUEST['post'];
+                    elseif ( isset( $_REQUEST['post_ID'] ) )
+                            $post_id = (int) $_REQUEST['post_ID'];
+                    else
+                            $post_id = 0;
+
+                    if ( $post_id )
+                            $post = get_post( $post_id );
+
+                    if ( isset( $post ) && !empty( $post ) )
+                            $post_type = $post->post_type;
+
+            }
+            
 			if ( 'leaky-paywall_page_unipress-settings' === $hook_suffix )
-				wp_enqueue_script( 'unipress_admin_js', ISSUEM_LP_UPAPI_URL . 'js/admin.js', array( 'jquery' ), ISSUEM_LP_UPAPI_VERSION );
+				wp_enqueue_script( 'unipress_admin_js', UNIPRESS_API_URL . 'js/admin.js', array( 'jquery' ), UNIPRESS_API_VERSION );
+				
+			if ( 'unipress-push' === $post_type && ( 'post-new.php' === $hook_suffix || 'edit.php' === $hook_suffix ) )
+				wp_enqueue_script( 'unipress_admin_push_js', UNIPRESS_API_URL . 'js/admin-push.js', array( 'jquery' ), UNIPRESS_API_VERSION );
 		}
 		
 		function admin_wp_print_styles() {
 			global $hook_suffix;
+			$post_type = false;
+			
+            $suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+
+            if ( isset( $_REQUEST['post_type'] ) ) {
+
+                    $post_type = $_REQUEST['post_type'];
+
+            } else {
+
+                    if ( isset( $_REQUEST['post'] ) )
+                            $post_id = (int) $_REQUEST['post'];
+                    elseif ( isset( $_REQUEST['post_ID'] ) )
+                            $post_id = (int) $_REQUEST['post_ID'];
+                    else
+                            $post_id = 0;
+
+                    if ( $post_id )
+                            $post = get_post( $post_id );
+
+                    if ( isset( $post ) && !empty( $post ) )
+                            $post_type = $post->post_type;
+
+            }
+            
 			if ( 'leaky-paywall_page_unipress-settings' === $hook_suffix )
-				wp_enqueue_style( 'unipress_admin_css', ISSUEM_LP_UPAPI_URL . 'css/admin.css', '', ISSUEM_LP_UPAPI_VERSION );
+				wp_enqueue_style( 'unipress_admin_css', UNIPRESS_API_URL . 'css/admin.css', '', UNIPRESS_API_VERSION );
+			if ( 'unipress-push' === $post_type && ( 'post-new.php' === $hook_suffix || 'edit.php' === $hook_suffix ) )
+				wp_enqueue_style( 'unipress_admin_push_css', UNIPRESS_API_URL . 'css/admin-push.css', '', UNIPRESS_API_VERSION );
 		}
 		
 		function wp_enqueue_scripts() {
-			wp_enqueue_script( 'unipress-api', ISSUEM_LP_UPAPI_URL . '/js/unipress.js', array( 'jquery' ), ISSUEM_LP_UPAPI_VERSION );
+			wp_enqueue_script( 'unipress-api', UNIPRESS_API_URL . '/js/unipress.js', array( 'jquery' ), UNIPRESS_API_VERSION );
 			wp_localize_script( 'unipress-api', 'ajax_object', array( 'ajax_url' => admin_url( 'admin-ajax.php' ) ) );
-			wp_enqueue_style( 'unipress-api', ISSUEM_LP_UPAPI_URL . '/css/unipress.css', '', ISSUEM_LP_UPAPI_VERSION );
+			wp_enqueue_style( 'unipress-api', UNIPRESS_API_URL . '/css/unipress.css', '', UNIPRESS_API_VERSION );
 		}
 		
 		function admin_menu() {
-			add_submenu_page( 'issuem-leaky-paywall', __( 'UniPress', 'unipress-api' ), __( 'UniPress', 'unipress-api' ), apply_filters( 'manage_leaky_paywall_settings', 'manage_options' ), 'unipress-settings', array( $this, 'settings_page' ) );
-			add_submenu_page( 'issuem-leaky-paywall', __( 'UniPress Ads', 'unipress-ad' ), __( 'UniPress Ads', 'unipress-ad' ), apply_filters( 'manage_leaky_paywall_settings', 'manage_options' ), 'edit.php?post_type=unipress-ad' );
-			add_submenu_page( 'issuem-leaky-paywall', __( 'New Ad', 'unipress-ad' ), __( 'New Ad', 'unipress-ad' ), apply_filters( 'manage_leaky_paywall_settings', 'manage_options' ), 'post-new.php?post_type=unipress-ad' );
+			
+			add_menu_page( __( 'UniPress', 'unipress-api' ), __( 'UniPress', 'unipress-api' ), apply_filters( 'manage_unipress_api_settings', 'manage_options' ), 'unipress-settings', array( $this, 'settings_page' ), LEAKY_PAYWALL_URL . '/images/issuem-16x16.png' );
+						
+			add_submenu_page( 'unipress-settings', __( 'UniPress', 'unipress-api' ), __( 'UniPress', 'unipress-api' ), apply_filters( 'manage_unipress_api_settings', 'manage_options' ), 'unipress-settings', array( $this, 'settings_page' ) );
+			
+			add_submenu_page( 'unipress-settings', __( 'Ads', 'unipress-api' ), __( 'Ads', 'unipress-api' ), apply_filters( 'manage_unipress_api_settings', 'manage_options' ), 'edit.php?post_type=unipress-ad' );
+			add_submenu_page( 'unipress-settings', __( 'New Ad', 'unipress-api' ), __( 'New Ad', 'unipress-api' ), apply_filters( 'manage_unipress_api_settings', 'manage_options' ), 'post-new.php?post_type=unipress-ad' );
+			
+			add_submenu_page( 'unipress-settings', __( 'Push Notifications', 'unipress-api' ), __( 'Push Notifications', 'unipress-api' ), apply_filters( 'manage_unipress_api_settings', 'manage_options' ), 'edit.php?post_type=unipress-push' );
+			add_submenu_page( 'unipress-settings', __( 'New Push', 'unipress-api' ), __( 'New Push', 'unipress-api' ), apply_filters( 'manage_unipress_api_settings', 'manage_options' ), 'post-new.php?post_type=unipress-push' );
+
 		}
 		
 		/**
@@ -256,7 +316,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				
 				$content .= '<div id="unipress-device-options">';
 				if ( count( $devices ) < $settings['device-limit'] ) {
-					$content .= '<a class="button unipress-add-new-device" href="#">Add New Mobile Device</a>';
+					$content .= '<a class="button unipress-apid-new-device" href="#">Add New Mobile Device</a>';
 				} else {
 					$content .= '<p>' . __( 'You have reached your device limit, you must remove a device before adding new ones', 'unipress-api' ) . '</p>';
 				}
@@ -825,7 +885,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				}
 				
 				$args = array(
-					'post_type' 	=> 'unipress-ad',
+					'post_type' 	=> 'unipress-api',
 					'meta_query' 	=> array(
 						array(
 							'key' 	=> '_ad_type',
