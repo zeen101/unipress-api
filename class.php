@@ -38,6 +38,8 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 		}
 		
 		function admin_wp_enqueue_scripts( $hook_suffix ) {
+			
+			$post_type = false;
 
             if ( isset( $_REQUEST['post_type'] ) ) {
 
@@ -885,7 +887,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				}
 				
 				$args = array(
-					'post_type' 	=> 'unipress-api',
+					'post_type' 	=> 'unipress-ad',
 					'meta_query' 	=> array(
 						array(
 							'key' 	=> '_ad_type',
