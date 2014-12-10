@@ -39,6 +39,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 		
 		function admin_wp_enqueue_scripts( $hook_suffix ) {
 			
+			//wp_print_r( $hook_suffix );
 			$post_type = false;
 
             if ( isset( $_REQUEST['post_type'] ) ) {
@@ -64,9 +65,11 @@ if ( ! class_exists( 'UniPress_API' ) ) {
             
 			if ( 'leaky-paywall_page_unipress-settings' === $hook_suffix )
 				wp_enqueue_script( 'unipress_admin_js', UNIPRESS_API_URL . 'js/admin.js', array( 'jquery' ), UNIPRESS_API_VERSION );
-				
-			if ( 'unipress-push' === $post_type && ( 'post-new.php' === $hook_suffix || 'edit.php' === $hook_suffix ) )
+
+			if ( 'unipress-push' === $post_type && ( 'post-new.php' === $hook_suffix || 'post.php' === $hook_suffix ) ) {
 				wp_enqueue_script( 'unipress_admin_push_js', UNIPRESS_API_URL . 'js/admin-push.js', array( 'jquery' ), UNIPRESS_API_VERSION );
+				wp_enqueue_script( 'unipress_utf8_js', UNIPRESS_API_URL . 'js/utf8.js', array( 'unipress_admin_push_js' ), UNIPRESS_API_VERSION );
+			}
 		}
 		
 		function admin_wp_print_styles() {
@@ -98,7 +101,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
             
 			if ( 'leaky-paywall_page_unipress-settings' === $hook_suffix )
 				wp_enqueue_style( 'unipress_admin_css', UNIPRESS_API_URL . 'css/admin.css', '', UNIPRESS_API_VERSION );
-			if ( 'unipress-push' === $post_type && ( 'post-new.php' === $hook_suffix || 'edit.php' === $hook_suffix ) )
+			if ( 'unipress-push' === $post_type && ( 'post-new.php' === $hook_suffix || 'post.php' === $hook_suffix ) )
 				wp_enqueue_style( 'unipress_admin_push_css', UNIPRESS_API_URL . 'css/admin-push.css', '', UNIPRESS_API_VERSION );
 		}
 		
@@ -112,7 +115,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			
 			add_menu_page( __( 'UniPress', 'unipress-api' ), __( 'UniPress', 'unipress-api' ), apply_filters( 'manage_unipress_api_settings', 'manage_options' ), 'unipress-settings', array( $this, 'settings_page' ), LEAKY_PAYWALL_URL . '/images/issuem-16x16.png' );
 						
-			add_submenu_page( 'unipress-settings', __( 'UniPress', 'unipress-api' ), __( 'UniPress', 'unipress-api' ), apply_filters( 'manage_unipress_api_settings', 'manage_options' ), 'unipress-settings', array( $this, 'settings_page' ) );
+			add_submenu_page( 'unipress-settings', __( 'Settings', 'unipress-api' ), __( 'Settings', 'unipress-api' ), apply_filters( 'manage_unipress_api_settings', 'manage_options' ), 'unipress-settings', array( $this, 'settings_page' ) );
 			
 			add_submenu_page( 'unipress-settings', __( 'Ads', 'unipress-api' ), __( 'Ads', 'unipress-api' ), apply_filters( 'manage_unipress_api_settings', 'manage_options' ), 'edit.php?post_type=unipress-ad' );
 			add_submenu_page( 'unipress-settings', __( 'New Ad', 'unipress-api' ), __( 'New Ad', 'unipress-api' ), apply_filters( 'manage_unipress_api_settings', 'manage_options' ), 'post-new.php?post_type=unipress-ad' );
@@ -130,10 +133,12 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 		function get_settings() {
 			
 			$defaults = array( 
-				'device-limit' => 5,
-				'subscription-id' => 0,
-				'push-device-type' => 'all',
-				'push-url' => '',
+				'device-limit' 		=> 5,
+				'subscription-id' 	=> 0,
+				'push-device-type' 	=> 'all',
+				'dev-mode' 			=> false,
+				'app-id' 			=> '',
+				'secret-key' 		=> '',
 			);
 		
 			$defaults = apply_filters( 'unipress_api_settings_defaults', $defaults );
@@ -169,28 +174,40 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			if ( isset( $_REQUEST['unipress_api_settings_nonce'] ) 
 				&& wp_verify_nonce( $_REQUEST['unipress_api_settings_nonce'], 'save_unipress_api_settings' ) ) {
 									
-				if ( isset( $_REQUEST['device-limit'] ) && is_numeric( $_REQUEST['device-limit'] ) )
+				if ( isset( $_REQUEST['device-limit'] ) && is_numeric( $_REQUEST['device-limit'] ) ) {
 					$settings['device-limit'] = $_REQUEST['device-limit'];
-				else
-					$settings['device-limit'] = 5;
-					
-				if ( isset( $_REQUEST['subscription-id'] ) && is_numeric( $_REQUEST['subscription-id'] ) )
-					$settings['subscription-id'] = $_REQUEST['subscription-id'];
-				else
-					$settings['subscription-id'] = 0;
-					
-				if ( !empty( $_REQUEST['push-device-type'] ) && in_array( $_REQUEST['push-device-type'], array( 'all', 'iOS', 'Android' ) ) )
-					$settings['push-device-type'] = $_REQUEST['push-device-type'];
-				else
-					unset( $settings['push-device-type'] );
-					
-				if ( !empty( $_REQUEST['push-url'] ) ) {
-					$settings['push-url'] = trim( $_REQUEST['push-url'] );
-					if ( false === filter_var( $_REQUEST['push-url'], FILTER_VALIDATE_URL ) ) {
-						echo '<div class="error"><p><strong>' . __( 'Error invalid Push Notification URL.', 'unipress-api' ) . '</strong></p></div>';
-					}
 				} else {
-					unset( $settings['push-url'] );
+					$settings['device-limit'] = 5;
+				}
+					
+				if ( isset( $_REQUEST['subscription-id'] ) && is_numeric( $_REQUEST['subscription-id'] ) ) {
+					$settings['subscription-id'] = $_REQUEST['subscription-id'];
+				} else {
+					$settings['subscription-id'] = 0;
+				}
+					
+				if ( !empty( $_REQUEST['push-device-type'] ) && in_array( $_REQUEST['push-device-type'], array( 'all', 'iOS', 'Android' ) ) ) {
+					$settings['push-device-type'] = $_REQUEST['push-device-type'];
+				} else {
+					unset( $settings['push-device-type'] );
+				}
+					
+				if ( !empty( $_REQUEST['dev-mode'] ) ) {
+					$settings['dev-mode'] = true;
+				} else {
+					$settings['dev-mode'] = false;
+				}
+				
+				if ( !empty( $_REQUEST['app-id'] ) ) {
+					$settings['app-id'] = trim( $_REQUEST['app-id'] );
+				} else {
+					$settings['app-id'] = '';
+				}
+					
+				if ( !empty( $_REQUEST['secret-key'] ) ) {
+					$settings['secret-key'] = trim( $_REQUEST['secret-key'] );
+				} else {
+					$settings['secret-key'] = '';
 				}
 
 				
@@ -268,11 +285,24 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 									echo '</select>';
 									?>
                                 </td>
+                            </tr>
+                            
+                        	<tr>
+                                <th><?php _e( 'UniPress App Dev Mode', 'unipress-api' ); ?></th>
+                                <td>
+                                	<input type="checkbox" id="dev-mode" name="dev-mode" <?php checked( $settings['dev-mode'] ); ?> />
+                                </td>
+                            </tr> 
+                        	<tr>
+                                <th><?php _e( 'UniPress App ID', 'unipress-api' ); ?></th>
+                                <td>
+                                	<input type="text" id="app-id" class="" name="app-id" value="<?php echo htmlspecialchars( stripcslashes( $settings['app-id'] ) ); ?>" />
+                                </td>
                             </tr>            
                         	<tr>
-                                <th><?php _e( 'Push Notification URL', 'unipress-api' ); ?></th>
+                                <th><?php _e( 'UniPress App Secret Key', 'unipress-api' ); ?></th>
                                 <td>
-                                	<input type="text" id="push-url" class="large-text" name="push-url" value="<?php echo htmlspecialchars( stripcslashes( $settings['push-url'] ) ); ?>" />
+                                	<input type="text" id="secret-key" class="" name="secret-key" value="<?php echo htmlspecialchars( stripcslashes( $settings['secret-key'] ) ); ?>" />
                                 </td>
                             </tr>
                             
@@ -336,17 +366,35 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			if ( 'publish' === $new_status && 'publish' !== $old_status ) {
 
 				$settings = $this->get_settings();
-								
-				$args = array(
-					'headers'	=> array( 'content-type' => 'application/json' ),
-					'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'] ) ),
-				);
-				$response = wp_remote_post( $settings['push-url'], $args );
 				
-				if ( is_wp_error( $response ) ) {
+				if ( !empty( $settings['dev-mode'] ) ) {
+					$push_url = 'http://ec2-54-68-94-239.us-west-2.compute.amazonaws.com/paywall/1.1/%s/push?secretkey=%s'; //development
+				} else {
+					$push_url = 'https://app.getunipress.com:8443/paywall/1.1/%s-prod/push?secretkey=%s'; //production
+				}
+				$push_url = sprintf( $push_url, $settings['app-id'], $settings['secret-key'] );
+
+				if ( 'unipress-push' === $post->post_type ) {
+					if ( $device_type = get_post_meta( $post->ID, '_push_type', true )
+						&& $message = get_post_meta( $post->ID, '_push_content', true ) ) {
+							$args = array(
+								'headers'	=> array( 'content-type' => 'application/json' ),
+								'body'		=> json_encode( array( 'device-type' => $device_type, 'message' => $message ) ),
+							);
+							$response = wp_remote_post( $push_url, $args );
+						}
+				} else { //assume it's any other type of content that we want to send a silent notification for...
+					$args = array(
+						'headers'	=> array( 'content-type' => 'application/json' ),
+						'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'] ) ),
+					);
+					$response = wp_remote_post( $push_url, $args );
+				}
+				
+				if ( !empty( $response ) && is_wp_error( $response ) ) {
 					error_log( sprintf( __( 'UniPress Push Notification Error: %s', 'unipress-api' ), $response->get_error_message() ) );
 				}
-			
+
 			}
 			
 		}

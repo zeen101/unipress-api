@@ -194,21 +194,18 @@ if ( !function_exists( 'unipress_push_meta_box' ) ) {
 			</p>
 			
 			<p>
-			<label for="unipress-push-content"><?php _e( 'Push Content:', 'issuem' ); ?></label><br/>
+			<?php
+			$remaining = $max_length - strlen( $push_content );
+			if ( 10 > $remaining ) {
+				$length_class = 'unipress-push-count-superwarn';
+			} else if ( 20 > $remaining ) {
+				$length_class = 'unipress-push-count-warn';
+			} else {
+				$length_class = 'unipress-push-count';
+			}
+			?>
+			<label id="unipress-content-label" for="unipress-push-content"><?php printf( __( 'Push Content (%s bytes):', 'issuem' ), '<span id="push-current-length" class="' . $length_class . '">' . strlen( $push_content ) . '</span> / <span id="push-max-length">' . $max_length . '</span>' ); ?></label><br/>
 			<textarea id="unipress-push-content" name="push-content"><?php echo $push_content; ?></textarea><br/>
-			<div id="unipress-content-count">
-				<?php
-				$remaining = $max_length - strlen( $push_content );
-				if ( 10 > $remaining ) {
-					$length_class = 'unipress-push-count-superwarn';
-				} else if ( 20 > $remaining ) {
-					$length_class = 'unipress-push-count-warn';
-				} else {
-					$length_class = 'unipress-push-count';
-				}
-				?>
-				<span id="push-current-length" class="<?php echo $length_class; ?>"><?php echo strlen( $push_content ); ?></span> / <span id="push-max-length"><?php echo $max_length; ?></span>				
-			</div>
 			</p>
 			
 	        <script type="text/javascript" charset="utf-8">
