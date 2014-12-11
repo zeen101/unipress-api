@@ -368,7 +368,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$settings = $this->get_settings();
 				
 				if ( !empty( $settings['dev-mode'] ) ) {
-					$push_url = 'http://ec2-54-68-94-239.us-west-2.compute.amazonaws.com/paywall/1.1/%s/push?secretkey=%s'; //development
+					$push_url = 'http://toronto.briskmobile.com:8091/paywall/1.1/%s/push?secretkey=%s'; //development
 				} else {
 					$push_url = 'https://app.getunipress.com:8443/paywall/1.1/%s-prod/push?secretkey=%s'; //production
 				}
