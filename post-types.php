@@ -63,7 +63,7 @@ function unipress_api_post_types() {
 		'rewrite' 				=> array( 'slug' => 'unipress-ad' ),
 		'capability_type' 		=> 'post',
 		'register_meta_box_cb' 	=> 'unipress_api_push_metaboxes',
-		'has_archive' 			=> false,
+		'has_archive' 			=> true,
 		'hierarchical' 			=> false,
 		'menu_position' 		=> null,
 		'supports' 				=> array( 'title' )
@@ -187,9 +187,9 @@ if ( !function_exists( 'unipress_push_meta_box' ) ) {
 			<p>
 			<label for="unipress-push-type"><?php _e( 'Push Type:', 'issuem' ); ?></label>&nbsp;
 			<select id="unipress-push-type" name="push-type">
-				<option value="both" <?php selected( 'both', $push_type ) ?>><?php _e( 'Both iOS and Android', 'unipress-api' ); ?></option>
-				<option value="ios" <?php selected( 'ios', $push_type ) ?>><?php _e( 'iOS', 'unipress-api' ); ?></option>
-				<option value="android" <?php selected( 'android', $push_type ) ?>><?php _e( 'Android', 'unipress-api' ); ?></option>
+				<option value="all" <?php selected( 'all', $push_type ) ?>><?php _e( 'Both iOS and Android', 'unipress-api' ); ?></option>
+				<option value="iOS" <?php selected( 'ios', $push_type ) ?>><?php _e( 'iOS', 'unipress-api' ); ?></option>
+				<option value="Android" <?php selected( 'android', $push_type ) ?>><?php _e( 'Android', 'unipress-api' ); ?></option>
 			</select>
 			</p>
 			
@@ -229,7 +229,7 @@ if ( !function_exists( 'save_unipress_push_meta_box' ) ) {
 	 *
 	 * @param int $post_id WordPress post ID
 	 */
-	function save_unipress_push_meta_box( $post_id ) {
+	function save_unipress_push_meta_box( $post_id, $post, $update ) {
 	
 		// verify if this is an auto save routine. 
 		// If it is our form has not been submitted, so we dont want to do anything
@@ -252,6 +252,6 @@ if ( !function_exists( 'save_unipress_push_meta_box' ) ) {
 		do_action( 'save_unipress_push_meta_box', $post_id );
 				
 	}
-	add_action( 'save_post_unipress-push', 'save_unipress_push_meta_box' );
+	add_action( 'save_post_unipress-push', 'save_unipress_push_meta_box', 10, 3 );
 
 }

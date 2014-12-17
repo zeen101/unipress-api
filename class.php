@@ -407,15 +407,14 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$push_url = sprintf( $push_url, $settings['app-id'], $settings['secret-key'] );
 
 				if ( 'unipress-push' === $post->post_type ) {
-					if ( $device_type = get_post_meta( $post->ID, '_push_type', true )
-						&& $message = get_post_meta( $post->ID, '_push_content', true ) ) {
-							$args = array(
-								'headers'	=> array( 'content-type' => 'application/json' ),
-								'body'		=> json_encode( array( 'device-type' => $device_type, 'message' => $message ) ),
-							);
-							$response = wp_remote_post( $push_url, $args );
-						}
-				} else { //assume it's any other type of content that we want to send a silent notification for...
+					if ( !empty( $_POST['push-type'] ) && !empty( $_POST['push-content'] ) ) { //this happens before the save_post_unipress-push, so we need to pull from _POST
+						$args = array(
+							'headers'	=> array( 'content-type' => 'application/json' ),
+							'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'message' => $_POST['push-content'] ) ),
+						);
+						$response = wp_remote_post( $push_url, $args );
+					}
+				} else if ( 'post' === $post->post_type ) { //assume it's any other type of content that we want to send a silent notification for...
 					$args = array(
 						'headers'	=> array( 'content-type' => 'application/json' ),
 						'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'] ) ),
