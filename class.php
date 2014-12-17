@@ -279,9 +279,9 @@ if ( ! class_exists( 'UniPress_API' ) ) {
                                 <td>
 									<?php
 									echo '<select name="push-device-type">';
-									echo '<option value="all" ' . selected( 'all', $settings['device-type'], true ) . '>' . __( 'iOS and Android', 'unipress-api' ) . '</option>';
-									echo '<option value="iOS" ' . selected( 'iOS', $settings['device-type'], true ) . '>' . __( 'iOS', 'unipress-api' ) . '</option>';
-									echo '<option value="Android" ' . selected( 'Android', $settings['device-type'], true ) . '>' . __( 'Android', 'unipress-api' ) . '</option>';
+									echo '<option value="all" ' . selected( 'all', $settings['push-device-type'], true ) . '>' . __( 'iOS and Android', 'unipress-api' ) . '</option>';
+									echo '<option value="iOS" ' . selected( 'iOS', $settings['push-device-type'], true ) . '>' . __( 'iOS', 'unipress-api' ) . '</option>';
+									echo '<option value="Android" ' . selected( 'Android', $settings['push-device-type'], true ) . '>' . __( 'Android', 'unipress-api' ) . '</option>';
 									echo '</select>';
 									?>
                                 </td>
@@ -367,10 +367,10 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 
 				$settings = $this->get_settings();
 				
-				if ( !empty( $settings['dev-mode'] ) ) {
-					$push_url = 'http://toronto.briskmobile.com:8091/paywall/1.1/%s/push?secretkey=%s'; //development
-				} else {
+				if ( empty( $settings['dev-mode'] ) ) {
 					$push_url = 'https://app.getunipress.com:8443/paywall/1.1/%s-prod/push?secretkey=%s'; //production
+				} else {
+					$push_url = 'http://toronto.briskmobile.com:8091/paywall/1.1/%s/push?secretkey=%s'; //development
 				}
 				$push_url = sprintf( $push_url, $settings['app-id'], $settings['secret-key'] );
 
