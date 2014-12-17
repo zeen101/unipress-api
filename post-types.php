@@ -63,7 +63,7 @@ function unipress_api_post_types() {
 		'rewrite' 				=> array( 'slug' => 'unipress-ad' ),
 		'capability_type' 		=> 'post',
 		'register_meta_box_cb' 	=> 'unipress_api_push_metaboxes',
-		'has_archive' 			=> true,
+		'has_archive' 			=> false,
 		'hierarchical' 			=> false,
 		'menu_position' 		=> null,
 		'supports' 				=> array( 'title' )
@@ -229,7 +229,7 @@ if ( !function_exists( 'save_unipress_push_meta_box' ) ) {
 	 *
 	 * @param int $post_id WordPress post ID
 	 */
-	function save_unipress_push_meta_box( $post_id, $post, $update ) {
+	function save_unipress_push_meta_box( $post_id ) {
 	
 		// verify if this is an auto save routine. 
 		// If it is our form has not been submitted, so we dont want to do anything
@@ -252,6 +252,6 @@ if ( !function_exists( 'save_unipress_push_meta_box' ) ) {
 		do_action( 'save_unipress_push_meta_box', $post_id );
 				
 	}
-	add_action( 'save_post_unipress-push', 'save_unipress_push_meta_box', 10, 3 );
+	add_action( 'save_post_unipress-push', 'save_unipress_push_meta_box' );
 
 }
