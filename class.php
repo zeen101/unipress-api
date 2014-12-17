@@ -169,7 +169,6 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			
 			// Get the user options
 			$settings = $this->get_settings();
-			$settings_saved = false;
 
 			if ( isset( $_REQUEST['unipress_api_settings_nonce'] ) 
 				&& wp_verify_nonce( $_REQUEST['unipress_api_settings_nonce'], 'save_unipress_api_settings' ) ) {
@@ -209,23 +208,28 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				} else {
 					$settings['secret-key'] = '';
 				}
-
 				
-				$this->update_settings( $settings );
-				$settings_saved = true;
+				if ( !empty( $settings['app-id'] ) && !empty( $settings['secret-key'] ) ) {
+					if ( !$this->verify_secret_key( $settings['app-id'], $settings['secret-key'] ) ) {
+						$errors[] = '<div class="error"><p><strong>' . __( 'Error validating Secret Key. Please try again.', 'unipress-api' ) . '</strong></p></div>';
+					}
+				}
+				
+				if ( !empty( $errors ) ) {
+					foreach( $errors as $error ) {
+						echo $error;
+					}
+				} else {
+					$this->update_settings( $settings );
+					// update settings notification ?>
+					<div class="updated"><p><strong><?php _e( 'UniPress Settings Updated.', 'unipress-api' );?></strong></p></div>
+					<?php
+				}
 				
 				do_action( 'update_unipress_api_settings', $settings );
 				
 			}
-			
-			if ( $settings_saved ) {
-				
-				// update settings notification ?>
-				<div class="updated"><p><strong><?php _e( 'UniPress Settings Updated.', 'unipress-api' );?></strong></p></div>
-				<?php
-				
-			}
-			
+						
 			// Display HTML form for the options below
 			?>
 			<div class=wrap>
@@ -327,6 +331,34 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			</div>
 			<?php
 			
+		}
+		
+		function verify_secret_key( $app_id, $secret_key ) {
+			
+			$settings = $this->get_settings();
+			
+			if ( empty( $settings['dev-mode'] ) ) {
+				$push_url = 'https://app.getunipress.com:8443/paywall/1.1/%s-prod/options?secretkey=%s'; //production
+			} else {
+				$push_url = 'http://toronto.briskmobile.com:8091/paywall/1.1/%s/options?secretkey=%s'; //development
+			}
+			$push_url = sprintf( $push_url, $app_id, $secret_key );
+
+			$response = wp_remote_get( $push_url );
+			
+			if ( !empty( $response ) ) {
+				if ( is_wp_error( $response ) ) {
+					error_log( sprintf( __( 'UniPress Push Notification Error: %s', 'unipress-api' ), $response->get_error_message() ) );
+				} else {
+					$body = json_decode( wp_remote_retrieve_body( $response ) );
+					if ( $body->success ) {
+						return true;
+					}
+				}
+			}
+			
+			return false;
+				
 		}
 		
 		function leaky_paywall_subscriber_info_paid_subscriber_end( $content ) {
