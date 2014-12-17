@@ -545,6 +545,33 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					),
 				);
 
+			} else if ( !empty( $_REQUEST['taxonomies'] ) && !empty( $_REQUEST['terms'] ) ) {
+				
+				if ( is_array( $_REQUEST['taxonomies'] ) && is_array( $_REQUEST['terms'] ) ) {
+					
+					if ( count( $_REQUEST['taxonomies'] ) === count( $_REQUEST['terms'] ) ) { //Make sure they are the same size
+						
+						$taxonomies = $_REQUEST['taxonomies'];
+						$terms = $_REQUEST['terms'];
+						
+						$args['tax_query'] = array( 'relation' => 'AND' );
+						foreach( $taxonomies as $key => $taxonomy ) {
+							
+							if ( is_numeric( $terms[$key] ) ) {
+								$field = 'term_id';
+							} else {
+								$field = 'slug';
+							}
+							
+							$args['tax_query'][] = array(
+								'taxonomy' => $taxonomy,
+								'field'    => $field,
+								'terms'    => $terms[$key],
+							);
+						}
+						
+					}
+				} 
 			}
 			
 			$upload_dir = wp_upload_dir();
