@@ -378,7 +378,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				
 				$content .= '<div id="unipress-device-options">';
 				if ( count( $devices ) < $settings['device-limit'] ) {
-					$content .= '<a class="button unipress-apid-new-device" href="#">Add New Mobile Device</a>';
+					$content .= '<a class="button unipress-add-new-device" href="#">Add New Mobile Device</a>';
 				} else {
 					$content .= '<p>' . __( 'You have reached your device limit, you must remove a device before adding new ones', 'unipress-api' ) . '</p>';
 				}
