@@ -210,7 +210,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				}
 				
 				if ( !empty( $settings['app-id'] ) && !empty( $settings['secret-key'] ) ) {
-					if ( !$this->verify_secret_key( $settings['app-id'], $settings['secret-key'] ) ) {
+					if ( !$this->verify_secret_key( $settings['app-id'], $settings['secret-key'], $settings['dev-mode'] ) ) {
 						$errors[] = '<div class="error"><p><strong>' . __( 'Error validating Secret Key. Please try again.', 'unipress-api' ) . '</strong></p></div>';
 					}
 				}
@@ -333,11 +333,9 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			
 		}
 		
-		function verify_secret_key( $app_id, $secret_key ) {
+		function verify_secret_key( $app_id, $secret_key, $dev_mode=true ) {
 			
-			$settings = $this->get_settings();
-			
-			if ( empty( $settings['dev-mode'] ) ) {
+			if ( !$dev_mode ) {
 				$push_url = 'https://app.getunipress.com:8443/paywall/1.1/%s-prod/options?secretkey=%s'; //production
 			} else {
 				$push_url = 'http://toronto.briskmobile.com:8091/paywall/1.1/%s/options?secretkey=%s'; //development
