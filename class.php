@@ -15,6 +15,8 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 	
 	class UniPress_API {
 		
+		private $leaky_paywall_enabled;
+		
 		/**
 		 * Class constructor, puts things in motion
 		 *
@@ -28,12 +30,18 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			add_action( 'admin_print_styles', array( $this, 'admin_wp_print_styles' ) );
 			add_action( 'wp_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
 			add_action( 'admin_menu', array( $this, 'admin_menu' ) );
-						
-			add_filter( 'leaky_paywall_subscriber_info_paid_subscriber_end', array( $this, 'leaky_paywall_subscriber_info_paid_subscriber_end' ) );
 			
 			add_action( 'wp', array( $this, 'process_requests' ), 15 );
 	        // Whenever you publish new content, notify UniPress Servers
 	        add_action( 'transition_post_status', array( $this, 'push_notification' ), 100, 3 );
+	        
+			include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+			if ( is_plugin_active( 'issuem-leaky-paywall/issuem-leaky-paywall.php' ) ) {
+				$this->leaky_paywall_enabled = true;
+				add_filter( 'leaky_paywall_subscriber_info_paid_subscriber_end', array( $this, 'leaky_paywall_subscriber_info_paid_subscriber_end' ) );
+			} else {
+				$this->leaky_paywall_enabled = false;
+			}
 
 		}
 		
@@ -63,7 +71,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 
             }
             
-			if ( 'leaky-paywall_page_unipress-settings' === $hook_suffix )
+			if ( 'toplevel_page_unipress-settings' === $hook_suffix )
 				wp_enqueue_script( 'unipress_admin_js', UNIPRESS_API_URL . 'js/admin.js', array( 'jquery' ), UNIPRESS_API_VERSION );
 
 			if ( 'unipress-push' === $post_type && ( 'post-new.php' === $hook_suffix || 'post.php' === $hook_suffix ) ) {
@@ -99,7 +107,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 
             }
             
-			if ( 'leaky-paywall_page_unipress-settings' === $hook_suffix )
+			if ( 'toplevel_page_unipress-settings' === $hook_suffix )
 				wp_enqueue_style( 'unipress_admin_css', UNIPRESS_API_URL . 'css/admin.css', '', UNIPRESS_API_VERSION );
 			if ( 'unipress-push' === $post_type && ( 'post-new.php' === $hook_suffix || 'post.php' === $hook_suffix ) )
 				wp_enqueue_style( 'unipress_admin_push_css', UNIPRESS_API_URL . 'css/admin-push.css', '', UNIPRESS_API_VERSION );
@@ -113,7 +121,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 		
 		function admin_menu() {
 			
-			add_menu_page( __( 'UniPress', 'unipress-api' ), __( 'UniPress', 'unipress-api' ), apply_filters( 'manage_unipress_api_settings', 'manage_options' ), 'unipress-settings', array( $this, 'settings_page' ), LEAKY_PAYWALL_URL . '/images/issuem-16x16.png' );
+			add_menu_page( __( 'UniPress', 'unipress-api' ), __( 'UniPress', 'unipress-api' ), apply_filters( 'manage_unipress_api_settings', 'manage_options' ), 'unipress-settings', array( $this, 'settings_page' ), UNIPRESS_API_URL . '/images/issuem-16x16.png' );
 						
 			add_submenu_page( 'unipress-settings', __( 'Settings', 'unipress-api' ), __( 'Settings', 'unipress-api' ), apply_filters( 'manage_unipress_api_settings', 'manage_options' ), 'unipress-settings', array( $this, 'settings_page' ) );
 			
@@ -260,6 +268,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
                                 	<p class="description"><?php _e( 'The number of mobile devices a user can register', 'unipress-api' ); ?></p>
                                 </td>
                             </tr>
+                            <?php if ( $this->leaky_paywall_enabled ) { ?>
                         	<tr>
                                 <th><?php _e( 'Subscription ID', 'unipress-api' ); ?></th>
                                 <td>
@@ -278,6 +287,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 									?>
                                 </td>
                             </tr>
+                            <?php } ?>
                         	<tr>
                                 <th><?php _e( 'Push Notification Device Type(s)', 'unipress-api' ); ?></th>
                                 <td>
@@ -690,16 +700,21 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					throw new Exception( __( 'Missing Device ID.', 'unipress-api' ), 400 );
 				} else {
 					$device_id = $_REQUEST['device-id'];
-					$restrictions = unipress_api_get_user_restrictions_by_device_id( $device_id );
+					if ( $this->leaky_paywall_enabled ) {
+						$restrictions = unipress_api_get_user_restrictions_by_device_id( $device_id );
+					} else {
+						$restrictions = array();
+					}
 				}
 				
 				global $post;
+				$is_restricted = false;
 				$upload_dir = wp_upload_dir();
 				$post = get_post( $_REQUEST['article-id'] );
 				setup_postdata( $post ); 
 
 				$response['http_code'] = 200;
-				$lp_settings = get_leaky_paywall_settings();
+				
 				$post->unipress_restrictions = $restrictions;
 				$post->unipress_article_restriction = false;
 				$post->unipress_article_count = 0;
@@ -737,7 +752,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					}
 
 				}
-			
+
 				if ( !empty( $post ) ) {
 					$args = array(
 						'post_type' 		=> 'attachment',
@@ -801,121 +816,129 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$post = apply_filters( 'unipress_api_get_article_post', $post );
 					
 				}
+				
+				if ( $this->leaky_paywall_enabled ) {
+					
+					$visibility = get_post_meta( $post->ID, '_issuem_leaky_paywall_visibility', true );
+									
+					if ( false !== $visibility && !empty( $visibility['visibility_type'] ) && 'default' !== $visibility['visibility_type'] ) {
+						
+					    $level_id = unipress_api_get_user_level_id_by_device_id( $device_id );
 												
-			    $level_id = unipress_api_get_user_level_id_by_device_id( $device_id );
-				$visibility = get_post_meta( $post->ID, '_issuem_leaky_paywall_visibility', true );
-								
-				if ( false !== $visibility && !empty( $visibility['visibility_type'] ) && 'default' !== $visibility['visibility_type'] ) {
-											
-					switch( $visibility['visibility_type'] ) {
-						
-						case 'only':
-							if ( !in_array( $level_id, $visibility['only_visible'], true ) ) {
-								$is_restricted = true;
-								$post->visible = false;
-							}
-							break;
+						switch( $visibility['visibility_type'] ) {
 							
-						case 'always':
-							if ( in_array( -1, $visibility['always_visible'] ) || in_array( $level_id, $visibility['always_visible'] ) ) { //-1 = Everyone
-								$is_restricted = false;
-								$post->visible = true;
-							}
-							break;
+							case 'only':
+								if ( !in_array( $level_id, $visibility['only_visible'], true ) ) {
+									$is_restricted = true;
+									$post->visible = false;
+								}
+								break;
+								
+							case 'always':
+								if ( in_array( -1, $visibility['always_visible'] ) || in_array( $level_id, $visibility['always_visible'] ) ) { //-1 = Everyone
+									$is_restricted = false;
+									$post->visible = true;
+								}
+								break;
+							
+							case 'onlyalways':
+								if ( !in_array( $level_id, $visibility['only_always_visible'] ) ) {
+									$is_restricted = true;
+									$post->visible = false;
+								} else {
+									$is_restricted = false;
+									$post->visible = true;
+								}
+								break;
+							
+						}
 						
-						case 'onlyalways':
-							if ( !in_array( $level_id, $visibility['only_always_visible'] ) ) {
-								$is_restricted = true;
-								$post->visible = false;
-							} else {
-								$is_restricted = false;
-								$post->visible = true;
-							}
-							break;
-						
+						if ( $is_restricted ) {
+							$response = array(
+								'http_code' => 403,
+								'body' 		=> $post,
+							);
+							return $response;
+						}
 						
 					}
 					
+					$is_restricted = apply_filters( 'unipress_filter_is_restricted', $is_restricted, $restrictions, $post );
+	
 					if ( $is_restricted ) {
-						$response = array(
-							'http_code' => 403,
-							'body' 		=> $post,
-						);
-						return $response;
-					}
-					
-				}
-				
-				$is_restricted = apply_filters( 'unipress_filter_is_restricted', $is_restricted, $restrictions, $post );
-
-				if ( $is_restricted ) {
-					
-					switch ( $lp_settings['cookie_expiration_interval'] ) {
-						case 'hour':
-							$multiplier = 60 * 60; //seconds in an hour
-							break;
-						case 'day':
-							$multiplier = 60 * 60 * 24; //seconds in a day
-							break;
-						case 'week':
-							$multiplier = 60 * 60 * 24 * 7; //seconds in a week
-							break;
-						case 'month':
-							$multiplier = 60 * 60 * 24 * 7 * 4; //seconds in a month (4 weeks)
-							break;
-						case 'year':
-							$multiplier = 60 * 60 * 24 * 7 * 52; //seconds in a year (52 weeks)
-							break;
-					}
-					$expiration = time() + ( $lp_settings['cookie_expiration'] * $multiplier );
-					
-					$cookie = get_option( 'unipress_cookie_' . $device_id, array() );
-					if ( !empty( $cookie ) )
-						$available_content = maybe_unserialize( $cookie );
-					
-					if ( empty( $available_content[$restricted_post_type] ) )
-						$available_content[$restricted_post_type] = array();							
-				
-					foreach ( $available_content[$restricted_post_type] as $key => $restriction ) {
 						
-						if ( time() > $restriction || 7200 > $restriction ) { 
-							//this post view has expired
-							//Or it is very old and based on the post ID rather than the expiration time
-							unset( $available_content[$restricted_post_type][$key] );
-							
+						$lp_settings = get_leaky_paywall_settings();
+						switch ( $lp_settings['cookie_expiration_interval'] ) {
+							case 'hour':
+								$multiplier = 60 * 60; //seconds in an hour
+								break;
+							case 'day':
+								$multiplier = 60 * 60 * 24; //seconds in a day
+								break;
+							case 'week':
+								$multiplier = 60 * 60 * 24 * 7; //seconds in a week
+								break;
+							case 'month':
+								$multiplier = 60 * 60 * 24 * 7 * 4; //seconds in a month (4 weeks)
+								break;
+							case 'year':
+								$multiplier = 60 * 60 * 24 * 7 * 52; //seconds in a year (52 weeks)
+								break;
 						}
+						$expiration = time() + ( $lp_settings['cookie_expiration'] * $multiplier );
 						
-					}
-												
-					if( -1 != $restrictions['post_types'][$post_type_id]['allowed_value'] ) { //-1 means unlimited
+						$cookie = get_option( 'unipress_cookie_' . $device_id, array() );
+						if ( !empty( $cookie ) )
+							$available_content = maybe_unserialize( $cookie );
 						
-						$post->unipress_article_limit = $restrictions['post_types'][$post_type_id]['allowed_value'];
-
-						if ( $restrictions['post_types'][$post_type_id]['allowed_value'] > count( $available_content[$restricted_post_type] ) ) { 
-						
-							if ( !array_key_exists( $post->ID, $available_content[$restricted_post_type] ) ) {
+						if ( empty( $available_content[$restricted_post_type] ) )
+							$available_content[$restricted_post_type] = array();							
+					
+						foreach ( $available_content[$restricted_post_type] as $key => $restriction ) {
+							
+							if ( time() > $restriction || 7200 > $restriction ) { 
+								//this post view has expired
+								//Or it is very old and based on the post ID rather than the expiration time
+								unset( $available_content[$restricted_post_type][$key] );
 								
-								$available_content[$restricted_post_type][$post->ID] = $expiration;
-							
-							}
-							
-						} else {
-						
-							if ( !array_key_exists( $post->ID, $available_content[$restricted_post_type] ) ) {
-
-								$response['http_code'] = 401;
-													
 							}
 							
 						}
+													
+						if( -1 != $restrictions['post_types'][$post_type_id]['allowed_value'] ) { //-1 means unlimited
+							
+							$post->unipress_article_limit = $restrictions['post_types'][$post_type_id]['allowed_value'];
+	
+							if ( $restrictions['post_types'][$post_type_id]['allowed_value'] > count( $available_content[$restricted_post_type] ) ) { 
+							
+								if ( !array_key_exists( $post->ID, $available_content[$restricted_post_type] ) ) {
+									
+									$available_content[$restricted_post_type][$post->ID] = $expiration;
+								
+								}
+								
+							} else {
+							
+								if ( !array_key_exists( $post->ID, $available_content[$restricted_post_type] ) ) {
+	
+									$response['http_code'] = 401;
+														
+								}
+								
+							}
+							
+							$post->unipress_article_count = count( $available_content[$restricted_post_type] );
 						
-						$post->unipress_article_count = count( $available_content[$restricted_post_type] );
-					
+						}
+						
+						$serialized_available_content = maybe_serialize( $available_content );
+						update_option( 'unipress_cookie_' . $device_id, $serialized_available_content );
+						
 					}
 					
-					$serialized_available_content = maybe_serialize( $available_content );
-					update_option( 'unipress_cookie_' . $device_id, $serialized_available_content );
-					
+				} else {
+					$visibility = false;
+					$post->visible = true;
 				}
 				
 				$response['body'] = $post;
