@@ -967,7 +967,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				
 				if ( empty( $post['user-token'] ) ) {
 					throw new Exception( __( 'Missing User Token.', 'unipress-api' ), 400 );
-				} else if ( false === ( $user_id = get_transient( 'unipress_api_token_' . $post['user-token'] ) ) ) {
+				} else if ( false === ( $user_id = get_transient( 'unipress_api_token_' . strtolower( trim( $post['user-token'] ) ) ) ) ) {
 					throw new Exception( __( 'User Token has Expired. Please generate a new one.', 'unipress-api' ), 400 );
 				}
 				
@@ -1230,6 +1230,12 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$username = trim( $post['username'] );
 				}
 				
+				if ( !empty( $post['displayname'] ) ) {
+					$displayname = trim( $post['displayname'] );
+				} else {
+					$displayname = false;
+				}
+				
 				if ( empty( $post['password'] ) ) {
 					throw new Exception( __( 'Missing Password.', 'unipress-api' ), 400 );
 				} else {
@@ -1279,6 +1285,21 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 							}
 						} else {
 							throw new Exception( __( 'Username already exists.', 'unipress-api' ), 409 );
+						}
+					}
+					
+					if ( !empty( $displayname ) ) {
+						$userdata = array(
+							'ID' 			=> $user->ID,
+							'display_name' 	=> $displayname,
+						);
+						$user_id = wp_update_user( $userdata );
+						if ( !empty( $user_id ) && !is_wp_error( $user_id ) ) {
+							$response['body'][] = 'Subscriber Display Name Updated.';
+						} else if ( is_wp_error( $user_id ) ) {
+							throw new Exception( sprintf( __( 'Unable to update the subscriber display name: %s', 'unipress-api' ), $user_id->get_error_message() ), 400 );
+						} else {
+							throw new Exception( __( 'Unable to update the subscriber display name: Reason Unknown.', 'unipress-api' ), 400 );
 						}
 					}
 					
