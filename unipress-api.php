@@ -67,5 +67,9 @@ add_action( 'plugins_loaded', 'unipress_api_plugins_loaded', 4815162342 ); //wai
 function unipress_api_register_image_sizes() {
 	add_image_size( 'unipress-phone', 640, 100, true );
 	add_image_size( 'unipress-tablet', 1536, 240, true );
+	add_image_size( 'unipress-tablet-portrait', 1536, 180, true );
+	add_image_size( 'unipress-tablet-landscape', 2048, 180, true );
+	add_image_size( 'unipress-smartphone', 1080, 168, true );
+	add_image_size( 'unipress-wide-screen', 2560, 180, true );
 }
 add_action( 'init', 'unipress_api_register_image_sizes' );

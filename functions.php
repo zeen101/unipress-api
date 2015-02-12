@@ -19,6 +19,36 @@ if ( !function_exists( 'get_unipress_api_settings' ) ) {
 	
 }
 
+if ( !function_exists( 'unipress_api_add_new_subscription_matching_row_ajax' ) ) {
+
+	/**
+	 * AJAX Wrapper
+	 *
+	 * @since 1.0.0
+	 */
+	function unipress_api_add_new_subscription_matching_row_ajax() {
+		$lp_settings = get_leaky_paywall_settings();
+		if ( !empty( $lp_settings['levels'] ) ) {
+			$return  = '<p class="subscription-id-match">';
+			$return .= '<input type="text" class="in_app_purchase_id" name="subscription-ids[' . $_POST['count'] . '][app-id]" value="" placeholder="In-App Product ID" />';
+			$return .= '&nbsp;';
+			$return .= '<select name="subscription-ids[' . $_POST['count'] . '][level-id]">';
+			foreach( $lp_settings['levels'] as $level_id => $level ) {
+				$return .= '<option value="' . $level_id .'">' . $level['label'] . '</option>';
+			}
+			$return .= '</select>';
+			$return .= '&nbsp;';
+            $return .= '<a class="subscription-id-delete" href="#">&times;</a>'; 
+			$return .= '</p>';
+		} else {
+			$return = '<p>' . __( 'No Subscriptions Found. Please add some to the Leaky Paywall settings.', 'unipress-api' ) . '</p>';
+		}
+		die( $return );
+	}
+	add_action( 'wp_ajax_unipress-api-add-new-subscription-matching-row', 'unipress_api_add_new_subscription_matching_row_ajax' );
+	
+}
+
 if ( !function_exists( 'unipress_api_device_row' ) ) {
 	
 	function unipress_api_device_row( $device=false ) {
@@ -79,7 +109,7 @@ if ( !function_exists( 'unipress_api_delete_device_ajax' ) ) {
 		}
 		die();
 	}
-	add_action( 'wp_ajax_unipress-api-delect-device-row', 'unipress_api_delete_device_ajax' );
+	add_action( 'wp_ajax_unipress-api-delete-device-row', 'unipress_api_delete_device_ajax' );
 	
 }
 
@@ -159,11 +189,12 @@ if ( !function_exists( 'unipress_get_leaky_paywall_subscription_level_level_id' 
 	
 	function unipress_get_leaky_paywall_subscription_level_level_id( $level_id ) {
 		
-		if ( 'mobile' === $level_id ) {
+		$settings = get_unipress_api_settings();
 		
-			$settings = get_unipress_api_settings();
+		if ( 'mobile' === $level_id ) { //deprecated
 			return $settings['subscription-id'];
-			
+		} else if ( !empty( $settings['subscription-ids'][$level_id] ) ) {
+			return $settings['subscription-ids'][$level_id];
 		}
 		
 		return $level_id;

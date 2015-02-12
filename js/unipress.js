@@ -17,7 +17,7 @@ $unipress(document).ready(function($) {
 		parent = this;
         if ( confirm( 'Are you sure you want to delete this device?' ) ) {
 	        var data = {
-	            'action': 'unipress-api-delect-device-row',
+	            'action': 'unipress-api-delete-device-row',
 	            'device-id': $( this ).data( 'device-id' )
 	        }
 	        console.log( data );

@@ -35,6 +35,8 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 	        // Whenever you publish new content, notify UniPress Servers
 	        add_action( 'transition_post_status', array( $this, 'push_notification' ), 100, 3 );
 	        
+	        add_action( 'wp_head', array( $this, 'deeplinks' ) );
+	        
 			include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 			if ( is_plugin_active( 'issuem-leaky-paywall/issuem-leaky-paywall.php' ) ) {
 				$this->leaky_paywall_enabled = true;
@@ -141,12 +143,31 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 		function get_settings() {
 			
 			$defaults = array( 
-				'device-limit' 		=> 5,
-				'subscription-id' 	=> 0,
-				'push-device-type' 	=> 'all',
-				'dev-mode' 			=> false,
-				'app-id' 			=> '',
-				'secret-key' 		=> '',
+				'device-limit' 				=> 5,
+				'subscription-ids' 			=> array(),
+				'push-device-type' 			=> 'all',
+				'dev-mode' 					=> false,
+				'app-id' 					=> '',
+				'secret-key' 				=> '',
+				//Deeplinks
+				'dl-enabled' 					=> false,
+				'dl-custom-schema' 				=> '',
+				'dl-app-description' 			=> '',
+				'dl-app-logo-url' 				=> '',
+				'dl-ios-enabled' 				=> false,
+				'dl-ios-app-name' 				=> '',
+				'dl-ios-app-id' 				=> '',
+				'dl-ios-twitter-enabled' 		=> false,
+				'dl-ios-facebook-enabled' 		=> false,
+				'dl-android-enabled' 			=> false,
+				'dl-android-app-name' 			=> '',
+				'dl-android-app-id' 			=> '',
+				'dl-android-twitter-enabled' 	=> false,
+				'dl-android-facebook-enabled' 	=> false,
+				'dl-facebook-fallback' 			=> false,
+				'dl-mobile-browser-links' 		=> false,
+				//Custom CSS
+				'css' => '',
 			);
 		
 			$defaults = apply_filters( 'unipress_api_settings_defaults', $defaults );
@@ -186,11 +207,18 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				} else {
 					$settings['device-limit'] = 5;
 				}
-					
-				if ( isset( $_REQUEST['subscription-id'] ) && is_numeric( $_REQUEST['subscription-id'] ) ) {
-					$settings['subscription-id'] = $_REQUEST['subscription-id'];
+				
+				if ( !empty( $_REQUEST['subscription-ids'] ) ) {
+					$subscription_ids = array();
+					foreach( $_REQUEST['subscription-ids'] as $subscription_id ) {
+						if ( !empty( $subscription_id['app-id'] ) && isset( $subscription_id['level-id'] ) && is_numeric( $subscription_id['level-id'] ) ) {
+							$app_id = trim( $subscription_id['app-id'] );
+							$subscription_ids[$app_id] = $subscription_id['level-id'];
+						}
+					}
+					$settings['subscription-ids'] = $subscription_ids;
 				} else {
-					$settings['subscription-id'] = 0;
+					$settings['subscription-ids'] = array();
 				}
 					
 				if ( !empty( $_REQUEST['push-device-type'] ) && in_array( $_REQUEST['push-device-type'], array( 'all', 'iOS', 'Android' ) ) ) {
@@ -215,6 +243,94 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$settings['secret-key'] = trim( $_REQUEST['secret-key'] );
 				} else {
 					$settings['secret-key'] = '';
+				}
+				
+				//Deeplinks
+				if ( !empty( $_REQUEST['dl-enabled'] ) ) { 
+					$settings['dl-enabled'] = true;
+				} else {
+					$settings['dl-enabled'] = false;
+				}
+				if ( !empty( $_REQUEST['dl-custom-schema'] ) ) { 
+					$settings['dl-custom-schema'] = trim( $_REQUEST['dl-custom-schema'] );
+				} else {
+					$settings['dl-custom-schema'] = '';
+				}
+				if ( !empty( $_REQUEST['dl-app-description'] ) ) {
+					$settings['dl-app-description'] = trim( $_REQUEST['dl-app-description'] );
+				} else {
+					$settings['dl-app-description'] = '';
+				}
+				if ( !empty( $_REQUEST['dl-app-logo-url'] ) ) {
+					$settings['dl-app-logo-url'] = trim( $_REQUEST['dl-app-logo-url'] );
+				} else {
+					$settings['dl-app-logo-url'] = '';
+				}
+				if ( !empty( $_REQUEST['dl-ios-enabled'] ) ) {
+					$settings['dl-ios-enabled'] = true;
+				} else {
+					$settings['dl-ios-enabled'] = false;
+				}
+				if ( !empty( $_REQUEST['dl-ios-app-name'] ) ) {
+					$settings['dl-ios-app-name'] = trim( $_REQUEST['dl-ios-app-name'] );
+				} else {
+					$settings['dl-ios-app-name'] = '';
+				}
+				if ( !empty( $_REQUEST['dl-ios-app-id'] ) ) {
+					$settings['dl-ios-app-id'] = trim( $_REQUEST['dl-ios-app-id'] );
+				} else {
+					$settings['dl-ios-app-id'] = '';
+				}
+				if ( !empty( $_REQUEST['dl-ios-twitter-enabled'] ) ) {
+					$settings['dl-ios-twitter-enabled'] = true;
+				} else {
+					$settings['dl-ios-twitter-enabled'] = false;
+				}
+				if ( !empty( $_REQUEST['dl-ios-facebook-enabled'] ) ) {
+					$settings['dl-ios-facebook-enabled'] = true;
+				} else {
+					$settings['dl-ios-facebook-enabled'] = false;
+				}
+				if ( !empty( $_REQUEST['dl-android-enabled'] ) ) {
+					$settings['dl-android-enabled'] = true;
+				} else {
+					$settings['dl-android-enabled'] = false;
+				}
+				if ( !empty( $_REQUEST['dl-android-app-name'] ) ) {
+					$settings['dl-android-app-name'] = trim( $_REQUEST['dl-android-app-name'] );
+				} else {
+					$settings['dl-android-app-name'] = '';
+				}
+				if ( !empty( $_REQUEST['dl-android-app-id'] ) ) {
+					$settings['dl-android-app-id'] = trim( $_REQUEST['dl-android-app-id'] );
+				} else {
+					$settings['dl-android-app-id'] = '';
+				}
+				if ( !empty( $_REQUEST['dl-android-twitter-enabled'] ) ) {
+					$settings['dl-android-twitter-enabled'] = true;
+				} else {
+					$settings['dl-android-twitter-enabled'] = false;
+				}
+				if ( !empty( $_REQUEST['dl-android-facebook-enabled'] ) ) {
+					$settings['dl-android-facebook-enabled'] = true;
+				} else {
+					$settings['dl-android-facebook-enabled'] = false;
+				}
+				if ( !empty( $_REQUEST['dl-facebook-fallback'] ) ) {
+					$settings['dl-facebook-fallback'] = true;
+				} else {
+					$settings['dl-facebook-fallback'] = false;
+				}
+				if ( !empty( $_REQUEST['dl-mobile-browser-links'] ) ) {
+					$settings['dl-mobile-browser-links'] = true;
+				} else {
+					$settings['dl-mobile-browser-links'] = false;
+				}
+				
+				if ( !empty( $_REQUEST['css'] ) ) {
+					$settings['css'] = stripslashes( $_REQUEST['css'] );
+				} else {
+					$settings['css'] = '';
 				}
 				
 				if ( !empty( $settings['app-id'] ) && !empty( $settings['secret-key'] ) ) {
@@ -247,7 +363,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
             
                 <form id="issuem" method="post" action="">
 
-                    <h2 style='margin-bottom: 10px;' ><?php _e( "UniPress Settings", 'unipress-api' ); ?></h2>
+                    <h2 style='margin-bottom: 10px;' ><?php _e( 'UniPress Settings', 'unipress-api' ); ?></h2>
                 
                     <?php do_action( 'unipress_api_settings_form_start', $settings ); ?>
                     
@@ -270,19 +386,42 @@ if ( ! class_exists( 'UniPress_API' ) ) {
                             </tr>
                             <?php if ( $this->leaky_paywall_enabled ) { ?>
                         	<tr>
-                                <th><?php _e( 'Subscription ID', 'unipress-api' ); ?></th>
+                                <th>
+	                                <?php _e( 'Subscription ID Matching', 'unipress-api' ); ?>
+                                	<p class="description"><?php _e( 'Enter the In-App Product ID and select the Leaky Paywall Subscription that a user should get when purchasing from their mobile device.', 'unipress-api' ); ?></p>
+
+	                            </th>
                                 <td>
 									<?php
+									$count = 0;
 									$lp_settings = get_leaky_paywall_settings();
 									if ( !empty( $lp_settings['levels'] ) ) {
-										echo '<select name="subscription-id">';
-										foreach( $lp_settings['levels'] as $level_id => $level ) {
-											echo '<option value="' . $level_id .'" ' . selected( $level_id, $settings['subscription-id'], true ) . '>' . $level['label'] . '</option>';
+										echo '<div id="subscription-ids-matching">';
+										if ( !empty( $settings['subscription-ids'] ) ) {
+											foreach( $settings['subscription-ids'] as $app_id => $subscription_id ) {
+												echo '<p class="subscription-id-match">';
+												echo '<input type="text" class="in_app_purchase_id" name="subscription-ids[' . $count . '][app-id]" value="' . $app_id .'" />';
+												echo '&nbsp;';
+												echo '<select name="subscription-ids[' . $count . '][level-id]">';
+												foreach( $lp_settings['levels'] as $level_id => $level ) {
+													echo '<option value="' . $level_id .'" ' . selected( $level_id, $subscription_id, true ) . '>' . $level['label'] . '</option>';
+												}
+												echo '</select>';
+												echo '&nbsp;';
+									            echo '<a class="subscription-id-delete" href="#">&times;</a>'; 
+												echo '</p>';
+												$count++;
+											}
 										}
-										echo '</select>';
-										echo '<p class="description">' . __( 'This is the subscription access that mobile users will get when they pay through the mobile app.', 'unipress-api' ) . '</p>';
+										echo '</div>';
+										
+									    echo '<script type="text/javascript" charset="utf-8">';
+									    echo '    var unipress_subscription_ids_iteration = ' . $count . ';';
+									    echo '</script>';
+									    
+										submit_button( __( 'Add New Subscription Match', 'unipress-api' ), 'secondary', 'add-new-susbcription-match', true );
 									} else {
-										echo '<p>' . __( 'No Subscription Found. Please add some to the Leaky Paywall settings.', 'unipress-api' ) . '</p>';
+										echo '<p>' . __( 'No Subscriptions Found. Please add some to the Leaky Paywall settings.', 'unipress-api' ) . '</p>';
 									}
 									?>
                                 </td>
@@ -292,11 +431,13 @@ if ( ! class_exists( 'UniPress_API' ) ) {
                                 <th><?php _e( 'Push Notification Device Type(s)', 'unipress-api' ); ?></th>
                                 <td>
 									<?php
+									echo '<p>';
 									echo '<select name="push-device-type">';
 									echo '<option value="all" ' . selected( 'all', $settings['push-device-type'], true ) . '>' . __( 'iOS and Android', 'unipress-api' ) . '</option>';
 									echo '<option value="iOS" ' . selected( 'iOS', $settings['push-device-type'], true ) . '>' . __( 'iOS', 'unipress-api' ) . '</option>';
 									echo '<option value="Android" ' . selected( 'Android', $settings['push-device-type'], true ) . '>' . __( 'Android', 'unipress-api' ) . '</option>';
 									echo '</select>';
+									echo '</p>';
 									?>
                                 </td>
                             </tr>
@@ -304,19 +445,19 @@ if ( ! class_exists( 'UniPress_API' ) ) {
                         	<tr>
                                 <th><?php _e( 'UniPress App Dev Mode', 'unipress-api' ); ?></th>
                                 <td>
-                                	<input type="checkbox" id="dev-mode" name="dev-mode" <?php checked( $settings['dev-mode'] ); ?> />
+                                	<p><input type="checkbox" id="dev-mode" name="dev-mode" <?php checked( $settings['dev-mode'] ); ?> /></p>
                                 </td>
                             </tr> 
                         	<tr>
-                                <th><?php _e( 'UniPress App ID', 'unipress-api' ); ?></th>
+                                <th><?php _e( 'UniPress In-App Product ID', 'unipress-api' ); ?></th>
                                 <td>
-                                	<input type="text" id="app-id" class="" name="app-id" value="<?php echo htmlspecialchars( stripcslashes( $settings['app-id'] ) ); ?>" />
+                                	<p><input type="text" id="app-id" class="" name="app-id" value="<?php echo htmlspecialchars( stripcslashes( $settings['app-id'] ) ); ?>" /></p>
                                 </td>
                             </tr>            
                         	<tr>
                                 <th><?php _e( 'UniPress App Secret Key', 'unipress-api' ); ?></th>
                                 <td>
-                                	<input type="text" id="secret-key" class="" name="secret-key" value="<?php echo htmlspecialchars( stripcslashes( $settings['secret-key'] ) ); ?>" />
+                                	<p><input type="text" id="secret-key" class="" name="secret-key" value="<?php echo htmlspecialchars( stripcslashes( $settings['secret-key'] ) ); ?>" /></p>
                                 </td>
                             </tr>
                             
@@ -330,7 +471,159 @@ if ( ! class_exists( 'UniPress_API' ) ) {
                         
                     </div>
                     
-                    <?php wp_nonce_field( 'save_unipress_api_settings', 'unipress_api_settings_nonce' ); ?>             
+                    <?php wp_nonce_field( 'save_unipress_api_settings', 'unipress_api_settings_nonce' ); ?>
+                    
+                    <div id="modules" class="postbox">
+                    
+                        <div class="handlediv" title="Click to toggle"><br /></div>
+                        
+                        <h3 class="hndle"><span><?php _e( 'Application Deeplink Options', 'unipress-api' ); ?></span></h3>
+                        
+                        <div class="inside">
+                        
+                        <table id="unipress_deeplink_options" class="unipress-table deeplink-table">
+                        	<tr>
+                                <th><?php _e( 'Enable Deeplinks', 'unipress-api' ); ?></th>
+                                <td>
+                                	<p><input type="checkbox" id="dl-enabled" name="dl-enabled" <?php checked( $settings['dl-enabled'] ); ?> /></p>
+                                </td>
+                            </tr>
+                        	<tr>
+                                <th><?php _e( 'Custom Schema', 'unipress-api' ); ?></th>
+                                <td>
+                                	<p><input type="text" id="dl-custom-schema" name="dl-custom-schema" value="<?php echo $settings['dl-custom-schema']; ?>" /></p>
+                                </td>
+                            </tr>
+                        	<tr>
+                                <th><?php _e( 'App Logo URL', 'unipress-api' ); ?></th>
+                                <td>
+                                	<p><input type="text" id="dl-app-logo-url" name="dl-app-logo-url" value="<?php echo $settings['dl-app-logo-url']; ?>" /></p>
+                                </td>
+                            </tr>
+                        	<tr>
+                                <th><?php _e( 'App Description', 'unipress-api' ); ?></th>
+                                <td>
+                                	<p><input type="text" id="dl-app-description" name="dl-app-description" value="<?php echo $settings['dl-app-description']; ?>" /></p>
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <table id="unipress_deeplink_ios_options" class="unipress-table deeplink-table">
+                        	<tr>
+                                <th><?php _e( 'Enable iOS App Links', 'unipress-api' ); ?></th>
+                                <td>
+                                	<p><input type="checkbox" id="dl-ios-enabled" name="dl-ios-enabled" <?php checked( $settings['dl-ios-enabled'] ); ?> /></p>
+                                </td>
+                            </tr>
+                        	<tr>
+                                <th><?php _e( 'App Name', 'unipress-api' ); ?></th>
+                                <td>
+                                	<p><input type="text" id="dl-ios-app-name" name="dl-ios-app-name" value="<?php echo $settings['dl-ios-app-name']; ?>" /></p>
+                                </td>
+                            </tr>
+                        	<tr>
+                                <th><?php _e( 'App ID', 'unipress-api' ); ?></th>
+                                <td>
+                                	<p><input type="text" id="dl-ios-app-id" name="dl-ios-app-id" value="<?php echo $settings['dl-ios-app-id']; ?>" /></p>
+                                </td>
+                            </tr>
+                        	<tr>
+                                <th><?php _e( 'Social Networks', 'unipress-api' ); ?></th>
+                                <td>
+	                                <p>
+                                	<input type="checkbox" id="dl-ios-twitter-enabled" name="dl-ios-twitter-enabled" <?php checked( $settings['dl-ios-twitter-enabled'] ); ?> />
+                                	<label for="dl-ios-twitter-enabled"><?php _e( 'Enable Twitter', 'unipress-api' ); ?></label>
+	                                </p>
+	                                <p>
+                                	<input type="checkbox" id="dl-ios-facebook-enabled" name="dl-ios-facebook-enabled" <?php checked( $settings['dl-ios-facebook-enabled'] ); ?> />
+                                	<label for="dl-ios-facebook-enabled"><?php _e( 'Enable Facebook', 'unipress-api' ); ?></label>
+	                                </p>
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <table id="unipress_deeplink_android_options" class="unipress-table deeplink-table">
+                        	<tr>
+                                <th><?php _e( 'Enable Android App Links', 'unipress-api' ); ?></th>
+                                <td>
+                                	<p><input type="checkbox" id="dl-android-enabled" name="dl-android-enabled" <?php checked( $settings['dl-android-enabled'] ); ?> /></p>
+                                </td>
+                            </tr>
+                        	<tr>
+                                <th><?php _e( 'App Name', 'unipress-api' ); ?></th>
+                                <td>
+                                	<p><input type="text" id="dl-android-app-name" name="dl-android-app-name" value="<?php echo $settings['dl-android-app-name']; ?>" /></p>
+                                </td>
+                            </tr>
+                        	<tr>
+                                <th><?php _e( 'App ID', 'unipress-api' ); ?></th>
+                                <td>
+                                	<p><input type="text" id="dl-android-app-id" name="dl-android-app-id" value="<?php echo $settings['dl-android-app-id']; ?>" /></p>
+                                </td>
+                            </tr>
+                        	<tr>
+                                <th><?php _e( 'Social Networks', 'unipress-api' ); ?></th>
+                                <td>
+	                                <p>
+                                	<input type="checkbox" id="dl-android-twitter-enabled" name="dl-android-twitter-enabled" <?php checked( $settings['dl-android-twitter-enabled'] ); ?> />
+                                	<label for="dl-android-twitter-enabled"><?php _e( 'Enable Twitter', 'unipress-api' ); ?></label>
+	                                </p>
+	                                <p>
+                                	<input type="checkbox" id="dl-android-facebook-enabled" name="dl-android-facebook-enabled" <?php checked( $settings['dl-android-facebook-enabled'] ); ?> />
+                                	<label for="dl-android-facebook-enabled"><?php _e( 'Enable Facebook', 'unipress-api' ); ?></label>
+	                                </p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table id="unipress_deeplink_additional_options" class="unipress-table deeplink-table">
+                        	<tr>
+                                <th><?php _e( 'Enable Facebook Fallback', 'unipress-api' ); ?></th>
+                                <td>
+                                	<p>
+	                                <input type="checkbox" id="dl-facebook-fallback" name="dl-facebook-fallback" <?php checked( $settings['dl-facebook-fallback'] ); ?> />
+	                                <label for="dl-facebook-fallback"><?php _e( 'Fallback to Website URL (for Facebook App links).', 'unipress-api' ); ?></label>
+	                                </p>
+                                </td>
+                            </tr>
+                        	<tr>
+                                <th><?php _e( 'Mobile Browser Links', 'unipress-api' ); ?></th>
+                                <td>
+                                	<p>
+                                	<input type="checkbox" id="dl-mobile-browser-links" name="dl-mobile-browser-links" <?php checked( $settings['dl-mobile-browser-links'] ); ?> />
+                                	<label for="dl-mobile-browser-links"><?php _e( 'Use custom schema links to posts in mobile browser.', 'unipress-api' ); ?></label>
+                                	</p>
+                                </td>
+                            </tr>
+                        </table>
+                                                                                                  
+                        <p class="submit">
+                            <input class="button-primary" type="submit" name="update_unipress_api_settings" value="<?php _e( 'Save Settings', 'unipress-api' ) ?>" />
+                        </p>
+
+                        </div>
+                        
+                    </div>
+                        
+                    <div id="modules" class="postbox">
+                    
+                        <div class="handlediv" title="Click to toggle"><br /></div>
+                        
+                        <h3 class="hndle"><span><?php _e( 'Custom Styling (CSS)', 'unipress-api' ); ?></span></h3>
+                        
+                        <div class="inside">
+
+						<textarea id="unipress-custom-css" name="css"><?php echo esc_textarea( $settings['css'] ); ?></textarea> 
+						<p class="description"><?php _e( 'Use this to add custom style sheets to your UniPress mobile app!', 'unipress-api' ); ?></p>                       
+                                                                          
+                        <p class="submit">
+                            <input class="button-primary" type="submit" name="update_unipress_api_settings" value="<?php _e( 'Save Settings', 'unipress-api' ) ?>" />
+                        </p>
+
+                        </div>
+                        
+                    </div>
+                           
                     <?php do_action( 'unipress_api_settings_form_end', $settings ); ?>
                     
                 </form>
@@ -341,6 +634,80 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			</div>
 			<?php
 			
+		}
+		
+		function deeplinks() {
+			$settings = $this->get_settings();
+
+			if ( $settings['dl-enabled'] ) {
+				
+				global $post;
+				
+				if ( is_single() ) {
+					$title = html_entity_decode( get_the_title(), ENT_COMPAT, get_bloginfo('charset') );
+				} else {
+					$title = html_entity_decode( get_bloginfo( 'name' ), ENT_COMPAT, get_bloginfo('charset') );
+				}
+				$permalink = get_permalink( $post->ID );
+				
+				/* Twitter all (for all apps) */
+				if ( $settings['dl-ios-twitter-enabled'] || $settings['dl-android-twitter-enabled'] ) {
+					echo '<meta name="twitter:card" content="app">' . "\n";
+					echo '<meta name="twitter:image" content="' . $settings['dl-app-logo-url'] . '">' . "\n";
+					echo '<meta name="twitter:title" content="' . $title . '">' . "\n";
+				}
+				
+				/* Facebook all (for all apps) */
+				if ( $settings['dl-ios-facebook-enabled'] || $settings['dl-android-facebook-enabled'] ) {
+					echo '<meta property="al:web:url" content="' . $permalink . '" />' . "\n";
+					echo '<meta property="al:web:should_fallback" content="' . ( $settings['dl-facebook-fallback'] ? 'true' : 'false' ) . '">' . "\n";
+					echo '<meta property="og:type" content="website">' . "\n";
+					echo '<meta property="og:url" content="' . $permalink . '" />' . "\n";
+					echo '<meta property="og:image" content="' . $settings['dl-app-logo-url'] . '" />' . "\n";
+					echo '<meta property="og:title" content="' . $title . '">' . "\n";
+				}
+					
+				/* iOS */
+				if ( $settings['dl-ios-enabled'] ) {
+					
+					/* Twitter iOS */
+					if ( $settings['dl-ios-twitter-enabled'] ) {
+						echo '<meta name="twitter:app:name:iphone" content="' . $settings['dl-ios-app-name'] . '">' . "\n";
+						echo '<meta name="twitter:app:id:iphone" content="' . $settings['dl-ios-app-id'] . '">' . "\n";
+						echo '<meta name="twitter:app:url:iphone" content="' . $settings['dl-custom-schema'] . '://post/' . $post->ID .'">' . "\n";
+						echo '<meta name="twitter:app:name:ipad" content="' . $settings['dl-ios-app-name'] . '">' . "\n";
+						echo '<meta name="twitter:app:id:ipad" content="' . $settings['dl-ios-app-id'] . '">' . "\n";
+						echo '<meta name="twitter:app:url:ipad" content="' . $settings['dl-custom-schema'] . '://post/' . $post->ID .'">' . "\n";
+					}
+					
+					/* Facebook iOS */
+					if ( $settings['dl-ios-facebook-enabled'] ) {
+						echo '<meta property="al:ios:app_name" content="' . $settings['dl-ios-app-name'] . '" />' . "\n";
+						echo '<meta property="al:ios:app_store_id" content="' . $settings['dl-ios-app-id'] . '" />' . "\n";
+						echo '<meta property="al:ios:url" content="' . $settings['dl-custom-schema'] . '://post/' . $post->ID .'" />' . "\n";
+					}
+				}
+				
+				/* Android */
+				if ( $settings['dl-android-enabled'] ) {
+					
+					/* Twitter Android */
+					if ( $settings['dl-android-twitter-enabled'] ) {
+						echo '<meta name="twitter:app:name:googleplay" content="' . $settings['dl-android-app-name'] . '" />' . "\n";
+						echo '<meta name="twitter:app:id:googleplay" content="' . $settings['dl-android-app-id'] . '" />' . "\n";
+						echo '<meta name="twitter:app:url:googleplay" content="' . $settings['dl-custom-schema'] . '://post/' . $post->ID .'" />' . "\n";
+						echo '<meta name="twitter:description" content="' . $settings['dl-app-description'] . '">' . "\n";
+					}
+					
+					/* Facebook Android */
+					if ( $settings['dl-android-facebook-enabled'] ) {
+						echo '<meta property="al:android:app_name" content="' . $settings['dl-android-app-name'] . '">' . "\n";
+						echo '<meta property="al:android:package" content="' . $settings['dl-android-app-id'] . '">' . "\n";
+						echo '<meta property="al:android:url" content="' . $settings['dl-custom-schema'] . '://post/' . $post->ID .'">' . "\n";
+					}
+				}
+				
+			}
 		}
 		
 		function verify_secret_key( $app_id, $secret_key, $dev_mode=true ) {
@@ -486,6 +853,10 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						
 					case 'add-comment':
 						$this->api_response( $this->add_comment() );
+						break;
+						
+					case 'get-css':
+						$this->api_response( $this->get_css() );
 						break;
 						
 					default:
@@ -1121,7 +1492,6 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$existing_customer = true;
 					$login = $user->user_login;
 					$email = $user->user_email;
-					$unique_hash = leaky_paywall_hash( $email );
 				} else {
 					$existing_customer = false;
 					//Create Guest User
@@ -1135,14 +1505,15 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					//We need to generate a fake user for iOS subscribers
 					$login = $username;
 					$email = $username . '@' . $url['host'];
-					$unique_hash = leaky_paywall_hash( $email );
 				}
 				
-				$level = get_leaky_paywall_subscription_level( 'mobile' );
+				$level_id = get_leaky_paywall_subscription_level( 'mobile' ); //herehere
+				$lp_settings = get_leaky_paywall_settings();
+				$level = $lp_settings['levels'][$level_id];
 				$customer_id = uniqid(); //need to get transaction ID
 				
 				$meta = array(
-					'level_id'			=> 'mobile',
+					'level_id'			=> $level_id,
 					'subscriber_id' 	=> $customer_id, //need to get transaction ID
 					'subscriber_email' 	=> $email,
 					'price' 			=> '0.00', //need to get receipt price
@@ -1156,7 +1527,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				);
 										
 				if ( $existing_customer ) {
-					$user_id = leaky_paywall_update_subscriber( $unique_hash, $email, $customer_id, $meta );
+					$user_id = leaky_paywall_update_subscriber( $email, $customer_id, $meta );
 					if ( !empty( $user_id ) ) {
 						$response = array(
 							'http_code' => 201,
@@ -1165,7 +1536,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					}
 				} else {
 					$meta['created'] = date_i18n( 'Y-m-d H:i:s' );
-					$user_id = leaky_paywall_new_subscriber( $unique_hash, $email, $customer_id, $meta );
+					$user_id = leaky_paywall_new_subscriber( $email, $customer_id, $meta );
 					if ( !empty( $user_id ) ) {
 						$response = array(
 							'http_code' => 200,
@@ -1318,7 +1689,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				);
 				return $response;
 			}
-		}	
+		}
 		
 		function get_post_types() {
 			$post_types = get_post_types();
@@ -1446,6 +1817,15 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				);
 				return $response;
 			}
+		}
+		
+		function get_css() {
+			$settings = $this->get_settings();
+			$response = array(
+				'http_code' => 200,
+				'body' 		=> $settings['css'],
+			);
+			return $response;
 		}		
 
 	}
