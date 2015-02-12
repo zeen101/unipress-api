@@ -713,7 +713,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 		function verify_secret_key( $app_id, $secret_key, $dev_mode=true ) {
 			
 			if ( !$dev_mode ) {
-				$push_url = 'https://app.getunipress.com:8443/paywall/1.1/%s/options?secretkey=%s'; //production
+				$push_url = 'https://app.getunipress.com/paywall/1.1/%s/options?secretkey=%s'; //production
 			} else {
 				$push_url = 'http://toronto.briskmobile.com:8091/paywall/1.1/%s/options?secretkey=%s'; //development
 			}
@@ -775,7 +775,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$settings = $this->get_settings();
 				
 				if ( empty( $settings['dev-mode'] ) ) {
-					$push_url = 'https://app.getunipress.com:8443/paywall/1.1/%s/push?secretkey=%s'; //production
+					$push_url = 'https://app.getunipress.com/paywall/1.1/%s/push?secretkey=%s'; //production
 				} else {
 					$push_url = 'http://toronto.briskmobile.com:8091/paywall/1.1/%s/push?secretkey=%s'; //development
 				}
