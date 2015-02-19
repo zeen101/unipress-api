@@ -103,10 +103,10 @@ if ( !function_exists( 'unipress_ad_meta_box' ) ) {
 			<p>
 			<label for="unipress-ad-type"><?php _e( 'Ad Type:', 'issuem' ); ?></label>&nbsp;
 			<select id="unipress-ad-type" name="ad-type">
-				<option value="phone" <?php selected( 'tablet-portrait', $ad_type ) ?>><?php _e( 'Tablet Portrait', 'unipress-api' ); ?></option>
-				<option value="phone" <?php selected( 'tablet-landscape', $ad_type ) ?>><?php _e( 'Tablet Landscape', 'unipress-api' ); ?></option>
-				<option value="phone" <?php selected( 'smartphone', $ad_type ) ?>><?php _e( 'Smartphone', 'unipress-api' ); ?></option>
-				<option value="phone" <?php selected( 'wide-screen', $ad_type ) ?>><?php _e( 'Wide Screen', 'unipress-api' ); ?></option>
+				<option value="tablet-portrait" <?php selected( 'tablet-portrait', $ad_type ) ?>><?php _e( 'Tablet Portrait', 'unipress-api' ); ?></option>
+				<option value="tablet-landscape" <?php selected( 'tablet-landscape', $ad_type ) ?>><?php _e( 'Tablet Landscape', 'unipress-api' ); ?></option>
+				<option value="smartphone" <?php selected( 'smartphone', $ad_type ) ?>><?php _e( 'Smartphone', 'unipress-api' ); ?></option>
+				<option value="wide-screen" <?php selected( 'wide-screen', $ad_type ) ?>><?php _e( 'Wide Screen', 'unipress-api' ); ?></option>
 				<option value="phone" <?php selected( 'phone', $ad_type ) ?>><?php _e( 'Phone (deprecated)', 'unipress-api' ); ?></option>
 				<option value="tablet" <?php selected( 'tablet', $ad_type ) ?>><?php _e( 'Tablet (deprecated)', 'unipress-api' ); ?></option>
 			</select>
