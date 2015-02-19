@@ -65,8 +65,8 @@ function unipress_api_plugins_loaded() {
 add_action( 'plugins_loaded', 'unipress_api_plugins_loaded', 4815162342 ); //wait for the plugins to be loaded before init
 
 function unipress_api_register_image_sizes() {
-	add_image_size( 'unipress-phone', 640, 100, true );
-	add_image_size( 'unipress-tablet', 1536, 240, true );
+	add_image_size( 'unipress-phone', 640, 100, true ); //deprecated
+	add_image_size( 'unipress-tablet', 1536, 240, true ); //deprecated
 	add_image_size( 'unipress-tablet-portrait', 1536, 180, true );
 	add_image_size( 'unipress-tablet-landscape', 2048, 180, true );
 	add_image_size( 'unipress-smartphone', 1080, 168, true );

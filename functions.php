@@ -269,7 +269,7 @@ if ( !function_exists( 'unipress_api_leaky_paywall_has_user_paid' ) ) {
 					case 'active':
 					case 'refunded':
 					case 'refund':
-						if ( $expires === '0000-00-00 00:00:00' )
+						if ( empty( $expires ) || '0000-00-00 00:00:00' === $expires )
 							return 'unlimited';
 							
 						if ( strtotime( $expires ) > time() )
@@ -279,7 +279,7 @@ if ( !function_exists( 'unipress_api_leaky_paywall_has_user_paid' ) ) {
 						break;
 					case 'cancelled':
 					case 'canceled':
-						if ( $expires === '0000-00-00 00:00:00' )
+						if ( empty( $expires ) || '0000-00-00 00:00:00' === $expires )
 							return false;
 						else
 							return 'canceled';

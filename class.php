@@ -149,6 +149,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				'dev-mode' 					=> false,
 				'app-id' 					=> '',
 				'secret-key' 				=> '',
+				'silent-push' 				=> true,
 				//Deeplinks
 				'dl-enabled' 					=> false,
 				'dl-custom-schema' 				=> '',
@@ -165,7 +166,6 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				'dl-android-twitter-enabled' 	=> false,
 				'dl-android-facebook-enabled' 	=> false,
 				'dl-facebook-fallback' 			=> false,
-				'dl-mobile-browser-links' 		=> false,
 				//Custom CSS
 				'css' => '',
 			);
@@ -244,6 +244,12 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				} else {
 					$settings['secret-key'] = '';
 				}
+					
+				if ( !empty( $_REQUEST['silent-push'] ) ) {
+					$settings['silent-push'] = true;
+				} else {
+					$settings['silent-push'] = false;
+				}
 				
 				//Deeplinks
 				if ( !empty( $_REQUEST['dl-enabled'] ) ) { 
@@ -321,12 +327,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				} else {
 					$settings['dl-facebook-fallback'] = false;
 				}
-				if ( !empty( $_REQUEST['dl-mobile-browser-links'] ) ) {
-					$settings['dl-mobile-browser-links'] = true;
-				} else {
-					$settings['dl-mobile-browser-links'] = false;
-				}
-				
+
 				if ( !empty( $_REQUEST['css'] ) ) {
 					$settings['css'] = stripslashes( $_REQUEST['css'] );
 				} else {
@@ -460,6 +461,13 @@ if ( ! class_exists( 'UniPress_API' ) ) {
                                 	<p><input type="text" id="secret-key" class="" name="secret-key" value="<?php echo htmlspecialchars( stripcslashes( $settings['secret-key'] ) ); ?>" /></p>
                                 </td>
                             </tr>
+                        	<tr>
+                                <th><?php _e( 'Silent Push Notification', 'unipress-api' ); ?></th>
+                                <td>
+                                	<p><input type="checkbox" id="silent-push" name="silent-push" <?php checked( $settings['silent-push'] ); ?> /></p>
+                                	<p class="description"><?php _e( 'Silent Push tells the mobile device when new content is available and caches the latest content', 'unipress' ); ?></p>
+                                </td>
+                            </tr> 
                             
                         </table>
                                                                           
@@ -584,15 +592,6 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 	                                <input type="checkbox" id="dl-facebook-fallback" name="dl-facebook-fallback" <?php checked( $settings['dl-facebook-fallback'] ); ?> />
 	                                <label for="dl-facebook-fallback"><?php _e( 'Fallback to Website URL (for Facebook App links).', 'unipress-api' ); ?></label>
 	                                </p>
-                                </td>
-                            </tr>
-                        	<tr>
-                                <th><?php _e( 'Mobile Browser Links', 'unipress-api' ); ?></th>
-                                <td>
-                                	<p>
-                                	<input type="checkbox" id="dl-mobile-browser-links" name="dl-mobile-browser-links" <?php checked( $settings['dl-mobile-browser-links'] ); ?> />
-                                	<label for="dl-mobile-browser-links"><?php _e( 'Use custom schema links to posts in mobile browser.', 'unipress-api' ); ?></label>
-                                	</p>
                                 </td>
                             </tr>
                         </table>
@@ -789,7 +788,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						);
 						$response = wp_remote_post( $push_url, $args );
 					}
-				} else if ( 'post' === $post->post_type ) { //assume it's any other type of content that we want to send a silent notification for...
+				} else if ( !empty( $settings['silent-push'] ) && 'post' === $post->post_type ) { //assume it's the only type of content that we want to send a silent notification for...
 					$args = array(
 						'headers'	=> array( 'content-type' => 'application/json' ),
 						'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'] ) ),
@@ -1463,7 +1462,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 		function set_subscription() {
 			try {
 				$input = file_get_contents('php://input');
-				$post = json_decode( $input, TRUE ); 
+				$post = json_decode( $input, TRUE );
 				
 				if ( empty( $post['device-id'] ) ) {
 					throw new Exception( __( 'Missing Device ID.', 'unipress-api' ), 400 );
@@ -1487,6 +1486,21 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						$receipt = $post['receipt'];
 					}
 				}
+				
+				if ( empty( $receipt['package'] ) ) {
+					throw new Exception( __( 'Missing Package Data.', 'unipress-api' ), 400 );
+				} else {
+					if ( $receipt['package'] !== $level_id = get_leaky_paywall_subscription_level( $receipt['package'] ) ) {
+						$lp_settings = get_leaky_paywall_settings();
+						if ( empty( $lp_settings['levels'][$level_id] ) ) {
+							throw new Exception( __( 'Unable to find valid subscription level.', 'unipress-api' ), 400 );
+						} else {
+							$level = $lp_settings['levels'][$level_id];
+						}
+					} else {
+						throw new Exception( __( 'Unable to find valid package.', 'unipress-api' ), 400 );
+					}
+				}
 								
 				if ( $user = unipress_api_get_user_by_device_id( $post['device-id'] ) ) {
 					$existing_customer = true;
@@ -1507,9 +1521,6 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$email = $username . '@' . $url['host'];
 				}
 				
-				$level_id = get_leaky_paywall_subscription_level( 'mobile' ); //herehere
-				$lp_settings = get_leaky_paywall_settings();
-				$level = $lp_settings['levels'][$level_id];
 				$customer_id = uniqid(); //need to get transaction ID
 				
 				$meta = array(

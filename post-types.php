@@ -103,14 +103,25 @@ if ( !function_exists( 'unipress_ad_meta_box' ) ) {
 			<p>
 			<label for="unipress-ad-type"><?php _e( 'Ad Type:', 'issuem' ); ?></label>&nbsp;
 			<select id="unipress-ad-type" name="ad-type">
-				<option value="phone" <?php selected( 'phone', $ad_type ) ?>><?php _e( 'Phone', 'unipress-api' ); ?></option>
-				<option value="tablet" <?php selected( 'tablet', $ad_type ) ?>><?php _e( 'Tablet', 'unipress-api' ); ?></option>
+				<option value="phone" <?php selected( 'tablet-portrait', $ad_type ) ?>><?php _e( 'Tablet Portrait', 'unipress-api' ); ?></option>
+				<option value="phone" <?php selected( 'tablet-landscape', $ad_type ) ?>><?php _e( 'Tablet Landscape', 'unipress-api' ); ?></option>
+				<option value="phone" <?php selected( 'smartphone', $ad_type ) ?>><?php _e( 'Smartphone', 'unipress-api' ); ?></option>
+				<option value="phone" <?php selected( 'wide-screen', $ad_type ) ?>><?php _e( 'Wide Screen', 'unipress-api' ); ?></option>
+				<option value="phone" <?php selected( 'phone', $ad_type ) ?>><?php _e( 'Phone (deprecated)', 'unipress-api' ); ?></option>
+				<option value="tablet" <?php selected( 'tablet', $ad_type ) ?>><?php _e( 'Tablet (deprecated)', 'unipress-api' ); ?></option>
 			</select>
 			</p>
 			
 			<p>
 			<label for="unipress-ad-link"><?php _e( 'Ad Link:', 'issuem' ); ?></label>&nbsp;
 			<input id="unipress-ad-link" type="text" name="ad-link" value="<?php echo $ad_link; ?>" />
+			</p>
+			
+			<p class="descripton">
+				<strong><?php _e( 'Tablet Portrait:', 'unipress-api' ); ?></strong> 1536px x 180px<br />
+				<strong><?php _e( 'Tablet Landscape:', 'unipress-api' ); ?></strong> 2048px x 180px <br />
+				<strong><?php _e( 'Smartphone:', 'unipress-api' ); ?></strong> 1080px x 168px<br />
+				<strong><?php _e( 'Wide Screen:', 'unipress-api' ); ?></strong> 2560px x 180px<br />
 			</p>
 
 		</div>
