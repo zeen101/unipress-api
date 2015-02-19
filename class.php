@@ -1378,7 +1378,8 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				if ( empty( $_REQUEST['device-type'] ) ) {
 					throw new Exception( __( 'Missing Device Type.', 'unipress-api' ), 400 );
 				} else {
-					if ( !( 'tablet' === strtolower( $_REQUEST['device-type'] ) || 'phone' === strtolower( $_REQUEST['device-type'] ) ) ) {
+					$device_type = strtolower( $_REQUEST['device-type'] );
+					if ( !in_array( $device_type, array( 'phone', 'tablet', 'tablet-portrait', 'tablet-landscape', 'smartphone', 'wide-screen' ) ) ) {
 						throw new Exception( __( 'Invalid Device Type. Must be Table or Phone.', 'unipress-api' ), 400 );						
 					}
 				}
