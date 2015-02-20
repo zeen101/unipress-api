@@ -1398,25 +1398,18 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$body = array();
 				
 				if ( !empty( $ads ) ) {
-					
-					foreach ( $ads as $ad ) {
+					foreach ( $ads as $key => $ad ) {
 						$ad_link = get_post_meta( $ad->ID, '_ad_link', true );
-						
 						if ( !empty( $ad_link ) ) {
-							$img_id = get_post_thumbnail_id( $ad->ID );
-							$ad_img = wp_get_attachment_image_src( $img_id, 'unipress-' . $_REQUEST['device-type'] ); ;
-							
-							if ( !empty( $ad_img ) ) {
-								$body[] = array(
-									'ad_link' 	=> $ad_link,
-									'ad_img'	=> $ad_img[0], //URL
-								);
-							}
-							
+							$body[$key]['ad_link' ] = $ad_link;							
 						}
 						
+						$img_id = get_post_thumbnail_id( $ad->ID );
+						$ad_img = wp_get_attachment_image_src( $img_id, 'unipress-' . $_REQUEST['device-type'] ); ;
+						if ( !empty( $ad_img ) ) {
+							$body[$key]['ad_img'] = $ad_img[0];	
+						}
 					}
-					
 				}
 				
 				$response = array(
