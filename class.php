@@ -1484,14 +1484,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				if ( empty( $receipt['package'] ) ) {
 					throw new Exception( __( 'Missing Package Data.', 'unipress-api' ), 400 );
 				} else {
-					if ( $receipt['package'] !== $level_id = get_leaky_paywall_subscription_level( $receipt['package'] ) ) {
-						$lp_settings = get_leaky_paywall_settings();
-						if ( empty( $lp_settings['levels'][$level_id] ) ) {
-							throw new Exception( __( 'Unable to find valid subscription level.', 'unipress-api' ), 400 );
-						} else {
-							$level = $lp_settings['levels'][$level_id];
-						}
-					} else {
+					if ( false === $level = get_leaky_paywall_subscription_level( $receipt['package'] ) ) {
 						throw new Exception( __( 'Unable to find valid package.', 'unipress-api' ), 400 );
 					}
 				}
@@ -1532,7 +1525,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				);
 										
 				if ( $existing_customer ) {
-					$user_id = leaky_paywall_update_subscriber( $email, $customer_id, $meta );
+					$user_id = leaky_paywall_update_subscriber( NULL, $email, $customer_id, $meta );
 					if ( !empty( $user_id ) ) {
 						$response = array(
 							'http_code' => 201,
@@ -1541,7 +1534,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					}
 				} else {
 					$meta['created'] = date_i18n( 'Y-m-d H:i:s' );
-					$user_id = leaky_paywall_new_subscriber( $email, $customer_id, $meta );
+					$user_id = leaky_paywall_new_subscriber( NULL, $email, $customer_id, $meta );
 					if ( !empty( $user_id ) ) {
 						$response = array(
 							'http_code' => 200,
