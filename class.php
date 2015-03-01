@@ -399,6 +399,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 									if ( !empty( $lp_settings['levels'] ) ) {
 										echo '<div id="subscription-ids-matching">';
 										if ( !empty( $settings['subscription-ids'] ) ) {
+
 											foreach( $settings['subscription-ids'] as $app_id => $subscription_id ) {
 												echo '<p class="subscription-id-match">';
 												echo '<input type="text" class="in_app_purchase_id" name="subscription-ids[' . $count . '][app-id]" value="' . $app_id .'" />';
@@ -1380,7 +1381,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				} else {
 					$device_type = strtolower( $_REQUEST['device-type'] );
 					if ( !in_array( $device_type, array( 'phone', 'tablet', 'tablet-portrait', 'tablet-landscape', 'smartphone', 'wide-screen' ) ) ) {
-						throw new Exception( __( 'Invalid Device Type. Must be Table or Phone.', 'unipress-api' ), 400 );						
+						throw new Exception( __( 'Invalid Device Type. Must be tablet-portrait, tablet-landscape, smartphone, wide-screen.', 'unipress-api' ), 400 );						
 					}
 				}
 				
@@ -1484,7 +1485,8 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				if ( empty( $receipt['package'] ) ) {
 					throw new Exception( __( 'Missing Package Data.', 'unipress-api' ), 400 );
 				} else {
-					if ( false === $level = get_leaky_paywall_subscription_level( $receipt['package'] ) ) {
+					$level_id = unipress_get_leaky_paywall_subscription_level_level_id( $receipt['package'] );
+					if ( false === $level = get_leaky_paywall_subscription_level( $level_id ) ) {
 						throw new Exception( __( 'Unable to find valid package.', 'unipress-api' ), 400 );
 					}
 				}
@@ -1523,9 +1525,11 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					'interval_count' 	=> $level['interval_count'],
 					'plan' 				=> $level['interval_count'] . ' ' . strtoupper( substr( $level['interval'], 0, 1 ) ),
 				);
+				
+				$unique_hash = leaky_paywall_hash( $email );
 										
 				if ( $existing_customer ) {
-					$user_id = leaky_paywall_update_subscriber( NULL, $email, $customer_id, $meta );
+					$user_id = leaky_paywall_update_subscriber( $unique_hash, $email, $customer_id, $meta );
 					if ( !empty( $user_id ) ) {
 						$response = array(
 							'http_code' => 201,
@@ -1534,7 +1538,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					}
 				} else {
 					$meta['created'] = date_i18n( 'Y-m-d H:i:s' );
-					$user_id = leaky_paywall_new_subscriber( NULL, $email, $customer_id, $meta );
+					$user_id = leaky_paywall_new_subscriber( $unique_hash, $email, $customer_id, $meta );
 					if ( !empty( $user_id ) ) {
 						$response = array(
 							'http_code' => 200,

@@ -190,10 +190,10 @@ if ( !function_exists( 'unipress_get_leaky_paywall_subscription_level_level_id' 
 	function unipress_get_leaky_paywall_subscription_level_level_id( $level_id ) {
 		
 		$settings = get_unipress_api_settings();
-		
+
 		if ( 'mobile' === $level_id ) { //deprecated
 			return $settings['subscription-id'];
-		} else if ( !empty( $settings['subscription-ids'][$level_id] ) ) {
+		} else if ( isset( $settings['subscription-ids'][$level_id] ) ) {
 			return $settings['subscription-ids'][$level_id];
 		}
 		
