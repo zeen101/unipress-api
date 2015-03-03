@@ -1000,7 +1000,10 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 		
 				if ( !empty( $attachment_posts ) ) {
 					foreach ( $attachment_posts as $attachment ) {
-						$attachments[] = wp_get_attachment_metadata( $attachment->ID );
+						$metadata = wp_get_attachment_metadata( $attachment->ID );
+						if ( !empty( $metadata ) ) {
+							$attachments[] = $metadata;
+						}
 					}
 				}
 				
@@ -1009,7 +1012,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$post->attachment_baseurl = $upload_dir['baseurl'];
 				$post->attachments = $attachments;
 				$post->featured_image = wp_get_attachment_metadata( get_post_thumbnail_id( $post->ID ) );
-				
+
 				$post->author_meta = new stdClass();
 				$post->author_meta->user_login 		= get_the_author_meta( 'user_login', 		$post->post_author );
 				$post->author_meta->user_nicename 	= get_the_author_meta( 'user_nicename', 	$post->post_author );
@@ -1136,7 +1139,10 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			
 					if ( !empty( $attachment_posts ) ) {
 						foreach ( $attachment_posts as $attachment ) {
-							$attachments[] = wp_get_attachment_metadata( $attachment->ID );
+							$metadata = wp_get_attachment_metadata( $attachment->ID );
+							if ( !empty( $metadata ) ) {
+								$attachments[] = $metadata;
+							}
 						}
 					}
 					
