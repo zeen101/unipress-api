@@ -662,8 +662,6 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					echo '<meta property="al:web:url" content="' . $permalink . '" />' . "\n";
 					echo '<meta property="al:web:should_fallback" content="' . ( $settings['dl-facebook-fallback'] ? 'true' : 'false' ) . '">' . "\n";
 					echo '<meta property="og:type" content="website">' . "\n";
-					echo '<meta property="og:url" content="' . $permalink . '" />' . "\n";
-					echo '<meta property="og:image" content="' . $settings['dl-app-logo-url'] . '" />' . "\n";
 					echo '<meta property="og:title" content="' . $title . '">' . "\n";
 				}
 					
