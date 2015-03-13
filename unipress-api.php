@@ -51,6 +51,7 @@ function unipress_api_plugins_loaded() {
 		
 		require_once( 'functions.php' );
 		require_once( 'post-types.php' );
+		require_once( 'shortcodes.php' );
 				
 		if ( !empty( $_REQUEST['unipress-api'] ) ) {
 			add_filter( 'jetpack_check_mobile', '__return_false' ); //JetPack messes with the mobile menu, so return false on UniPress API calls
