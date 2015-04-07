@@ -1144,6 +1144,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						}
 					}
 					
+					$post->guid = html_entity_decode( $post->guid );
 					$post->post_excerpt = get_the_excerpt();
 					
 					$post->attachment_baseurl = $upload_dir['baseurl'];
