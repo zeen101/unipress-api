@@ -23,6 +23,7 @@ if ( !function_exists( 'do_unipress_hide_content' ) ) {
 		
 	}
 	add_shortcode( 'unipress_hide_content', 'do_unipress_hide_content' );
+	add_shortcode( 'unipress-hide-content', 'do_unipress_hide_content' );
 	
 }
  
@@ -39,6 +40,7 @@ if ( !function_exists( 'do_unipress_image' ) ) {
 		
 	}
 	add_shortcode( 'unipress_image', 'do_unipress_image' );
+	add_shortcode( 'unipress-image', 'do_unipress_image' );
 	
 }
  
@@ -55,5 +57,6 @@ if ( !function_exists( 'do_unipress_video' ) ) {
 		
 	}
 	add_shortcode( 'unipress_video', 'do_unipress_video' );
+	add_shortcode( 'unipress-video', 'do_unipress_video' );
 	
 }
