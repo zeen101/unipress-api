@@ -936,6 +936,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			$args['orderby'] 		= !empty( $_REQUEST['orderby'] ) 		? $_REQUEST['orderby'] 								: 'post_date';
 			$args['order'] 			= !empty( $_REQUEST['order'] ) 			? $_REQUEST['order'] 								: 'DESC';
 			$args['post_type'] 		= !empty( $_REQUEST['post_type'] ) 		? $_REQUEST['post_type'] 							: array( 'post' );
+			$args['s'] 		        = !empty( $_REQUEST['s'] ) 		        ? $_REQUEST['s'] 							        : false;
 
 			if ( !empty( $_REQUEST['taxonomy'] ) && !empty( $_REQUEST['term'] ) ) {
 			
@@ -1024,6 +1025,10 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$post->author_meta->description 	= get_the_author_meta( 'description', 		$post->post_author );
 				
 				$post->formatted_post_content = apply_filters( 'the_content', $post->post_content );
+				
+				//We don't need these
+				unset( $post->post_content );
+				unset( $post->post_content_filtered );
 				
 				$taxonomies = get_taxonomies();
 				
@@ -1164,6 +1169,10 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$post->author_meta->description 	= get_the_author_meta( 'description', 		$post->post_author );
 					
 					$post->formatted_post_content = apply_filters( 'the_content', $post->post_content );
+						
+					//We don't need these
+					unset( $post->post_content );
+					unset( $post->post_content_filtered );
 					
 					$taxonomies = get_taxonomies();
 					
