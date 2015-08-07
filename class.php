@@ -1981,32 +1981,50 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						throw new Exception( __( 'Invalid Device Type. Must be iOS or Android.', 'unipress-api' ), 400 );						
 					}
 				}
-								
-				$user = unipress_api_get_user_by_device_id( $post['device-id'] );
-				
-				if ( empty( $user ) ) {
-					throw new Exception( __( 'Unable to locate user for this device.', 'unipress-api' ), 400 );
-				}
 				
 				if ( empty( $post['comment'] ) ) {
 					throw new Exception( __( 'Empty Comment.', 'unipress-api' ), 400 );
 				}
-												
+				
 				$args = array(
 					'comment_post_ID' 		=> $post['article-id'],
-					'comment_author' 		=> $user->user_login,
-					'comment_author_email' 	=> $user->user_email,
 					'comment_content' 		=> $post['comment'],
+					'comment_author_url' 	=> '',
 					'comment_type' 			=> '',
 					'comment_parent' 		=> !empty( $post['parent-comment-id'] ) ? $post['parent-comment-id'] : 0,
-					'user_id' 				=> $user->ID,
 					'comment_author_IP' 	=> unipress_api_get_ip_address(),
 					'comment_agent' 		=> $post['device-type'],
 					'comment_date' 			=> current_time('mysql'),
 					'comment_approved' 		=> 1,
 				);
 				
-				$comment_id = wp_insert_comment( $args );
+				$user = unipress_api_get_user_by_device_id( $post['device-id'] );
+				
+				if ( empty( $user ) ) {
+					if ( !(bool) get_option( 'comment_registration' ) ) { 
+						if ( (bool) get_option( 'require_name_email' ) ) {
+							if ( empty( $post['comment-name'] ) ) {
+								throw new Exception( __( 'Comment author must fill out name.', 'unipress-api' ), 400 );
+							} else if ( !is_numeric( $post['comment-email'] ) ) {
+								throw new Exception( __( 'Comment author must fill out e-mail address.', 'unipress-api' ), 400 );
+							}
+							$args['comment_author']       = $post['comment-name'];
+							$args['comment_author_email'] = $post['comment-email'];
+						} else {
+							//Allow anonymous commenting
+							$args['comment_author']       = '';
+							$args['comment_author_email'] = '';
+						}
+					} else {
+						throw new Exception( __( 'Unable to locate user for this device.', 'unipress-api' ), 400 );
+					}
+				} else {
+					$args['comment_author']       = $user->user_login;
+					$args['comment_author_email'] = $user->user_email;
+					$args['user_id']              = $user->ID;
+				}
+				
+				$comment_id = wp_new_comment( $args );
 										
 				if ( !empty( $comment_id ) ) {
 					$response = array(
