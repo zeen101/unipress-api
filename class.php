@@ -1248,10 +1248,10 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 		
 		function get_article() {
 			try {
-				if ( empty( $_REQUEST['article-id'] ) ) {
-					throw new Exception( __( 'Missing Article ID.', 'unipress-api' ), 400 );
-				} else if ( !is_numeric( $_REQUEST['article-id'] ) ) {
-					throw new Exception( __( 'Invalid Article Format.', 'unipress-api' ), 400 );
+				if ( empty( $_REQUEST['article-id'] ) && empty( $_REQUEST['article-url'] ) ) {
+					throw new Exception( __( 'Missing Article ID or URL.', 'unipress-api' ), 400 );
+				} else if ( !empty( $_REQUEST['article-id'] ) && !is_numeric( $_REQUEST['article-id'] ) ) {
+					throw new Exception( __( 'Invalid Article ID Format.', 'unipress-api' ), 400 );
 				}
 				
 				if ( empty( $_REQUEST['device-id'] ) ) {
@@ -1273,7 +1273,12 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				if ( !empty( $settings['attachment-baseurl'] ) ) { //setting override WordPress default
 					$baseurl = $settings['attachment-baseurl'];
 				}
-				$post = get_post( $_REQUEST['article-id'] );
+				if ( !empty( $_REQUEST['article-id'] ) ) {
+					$article_id = $_REQUEST['article-id'];
+				} else {
+					$article_id = url_to_postid( $_REQUEST['article-url'] );
+				}
+				$post = get_post( $article_id );
 				setup_postdata( $post ); 
 
 				$response['http_code'] = 200;
