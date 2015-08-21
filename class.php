@@ -1674,7 +1674,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				if ( empty( $_REQUEST['device-id'] ) ) {
 					throw new Exception( __( 'Missing Device ID.', 'unipress-api' ), 400 );
 				} else {
-					$user = unipress_api_get_user_by_device_id( $_REQUEST['device-id'] );
+					$user = unipress_api_get_user_by_device_id( trim( $_REQUEST['device-id'] ) );
 					if ( empty( $user ) ) {
 						$response = array(
 							'http_code' => 200,
@@ -1732,7 +1732,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					}
 				}
 								
-				if ( $user = unipress_api_get_user_by_device_id( $post['device-id'] ) ) {
+				if ( $user = unipress_api_get_user_by_device_id( trim( $post['device-id'] ) ) ) {
 					$existing_customer = true;
 					$login = $user->user_login;
 					$email = $user->user_email;
@@ -1856,7 +1856,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$password = $post['password']; //don't trim, incase they add a space at the end of their password on purpose...
 				}
 				
-				$user = unipress_api_get_user_by_device_id( $post['device-id'] );
+				$user = unipress_api_get_user_by_device_id( trim( $post['device-id'] ) );
 				
 				if ( !empty( $user ) ) {
 					$response = array(
@@ -2029,7 +2029,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					'comment_approved' 		=> 1,
 				);
 				
-				$user = unipress_api_get_user_by_device_id( $post['device-id'] );
+				$user = unipress_api_get_user_by_device_id( trim( $post['device-id'] ) );
 				
 				if ( empty( $user ) ) {
 					if ( !(bool) get_option( 'comment_registration' ) ) { 

@@ -7,12 +7,57 @@ Stable tag: 1.3.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-The easiest way to launch iOS and Android apps for your WordPress readers.
+Put your publication in your reader’s pocket.
 
 == Description ==
 
-UniPress is the easiest way to launch iOS and Android apps for your WordPress readers.
+Put your publication in your reader’s pocket.
 
+UniPress is the easiest way to launch iOS and Android apps for your WordPress readers. UniPress allows you to connect your...
+
+1. WordPress blog posts
+2. IssueM WordPress issues and
+3. Leaky Paywall metered paywall subscriptions for WordPress
+
+...to native iOS and Android apps.
+
+Now news and magazine publishers can easily run their website and apps in one WordPress dashboard.
+
+Check out our pricing plans at (GetUnipress.com)[https://getunipress.com/pricing-sign-up/].
+
+See how UniPress works:
+https://www.youtube.com/watch?v=dpSfiJdLYc8
+
+Developers can use this plugin to make custom apps for UniPress. If you are not a developer, please see our website for more information about creating an app with WordPress.
+This plugin is not an app-creator in itself, it serves as the core for all app development with UniPress.
+
+[Follow the development of the UniPress API Plugin on Bitbucket](https://bitbucket.org/unipress/unipress-api).
+
+Have questions? [Contact us here](https://getunipress.com/contact-us/).
+
+App Features
+* Publish WordPress blog posts and categories
+* Publish IssueM WordPress issues
+* Integrates with Leaky Paywall, a metered paywall for WordPress
+* Design: Use your own image or video for your splash screen intro, custom header image and UI colors
+* Send unlimited scheduled and manual push notifications 
+* Customizable app menu with pages, categories, tags, current issue, past issue, login button, subscribe button, custom taxonomies and links
+* User preferences for push notifications (by category or device type)
+* Support for posts, pages, categories, custom post types and custom fields
+* Advertising with Google DFP
+* Banner and native ads supported
+* Offline access to your content - background downloading
+* Support for Google Analytics with complete app usage statistics
+* Custom HTML/PHP/CSS in the article contents (add all the functionality you need)
+* WordPress, Facebook and Disqus comments supported
+* Social Sharing features (one tap to share to Facebook, Twitter, Whatsapp, email and more)
+* Support for in Youtube video
+* Soundcloud support
+* CDN support to reduce bandwidth
+* Support for image galleries
+* Multi Language apps
+* Build and App Submission service to App Store and Google Play (we do all for you)
+* Publish with your own Developer accounts on Google Play and App Store
 
 == Installation ==
 
