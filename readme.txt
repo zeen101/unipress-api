@@ -2,8 +2,8 @@
 Contributors: layotte, pericson, endocreative
 Tags: mobile, app, api
 Requires at least: 3.3
-Tested up to: 4.3
-Stable tag: 1.3.1
+Tested up to: 4.4
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,10 @@ You must have:
 
 
 == Changelog ==
+= 1.4.0 =
+* Trimming device-ID args
+* Updating readme.txt
+
 = 1.3.1 =
 * Adding filters to attachment meta, attachments, and new arg to featured image filter for get content list and get article API calls 
 
