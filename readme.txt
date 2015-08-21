@@ -23,7 +23,7 @@ UniPress is the easiest way to launch iOS and Android apps for your WordPress re
 
 Now news and magazine publishers can easily run their website and apps in one WordPress dashboard.
 
-Check out our pricing plans at (GetUnipress.com)[https://getunipress.com/pricing-sign-up/].
+Check out our pricing plans at [GetUniPress.com](https://getunipress.com/pricing-sign-up/).
 
 See how UniPress works:
 https://www.youtube.com/watch?v=dpSfiJdLYc8
@@ -35,7 +35,8 @@ This plugin is not an app-creator in itself, it serves as the core for all app d
 
 Have questions? [Contact us here](https://getunipress.com/contact-us/).
 
-App Features
+App Features:
+
 * Publish WordPress blog posts and categories
 * Publish IssueM WordPress issues
 * Integrates with Leaky Paywall, a metered paywall for WordPress
