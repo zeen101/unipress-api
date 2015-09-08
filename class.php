@@ -1063,7 +1063,6 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 		
 		//parse data
 		function get_content_list() {
-			global $post;
 			$settings = $this->get_settings();
 			$check_categories = false;
 
@@ -1126,7 +1125,6 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			}
 			
 			foreach( $posts as $key => &$post ) {
-				setup_postdata( $post );
 				
 				if ( $check_categories ) {
 					$match = false;
@@ -1265,7 +1263,6 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					}
 				}
 				
-				global $post;
 				$settings = $this->get_settings();
 				$is_restricted = false;
 				$upload_dir = wp_upload_dir();
@@ -1279,7 +1276,6 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$article_id = url_to_postid( $_REQUEST['article-url'] );
 				}
 				$post = get_post( $article_id );
-				setup_postdata( $post ); 
 
 				$response['http_code'] = 200;
 				
@@ -2036,7 +2032,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						if ( (bool) get_option( 'require_name_email' ) ) {
 							if ( empty( $post['comment-name'] ) ) {
 								throw new Exception( __( 'Comment author must fill out name.', 'unipress-api' ), 400 );
-							} else if ( !is_numeric( $post['comment-email'] ) ) {
+							} else if ( !is_email( $post['comment-email'] ) ) {
 								throw new Exception( __( 'Comment author must fill out e-mail address.', 'unipress-api' ), 400 );
 							}
 							$args['comment_author']       = $post['comment-name'];
