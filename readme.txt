@@ -3,7 +3,7 @@ Contributors: layotte, pericson, endocreative
 Tags: mobile, app, api
 Requires at least: 3.3
 Tested up to: 4.4
-Stable tag: 1.5.0
+Stable tag: 1.6.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,8 +75,10 @@ You must have:
 **How is UniPress API Licensed?**
 * UniPress API is GPL.
 
-
 == Changelog ==
+= 1.6.0 =
+* Handling Duplicate and Flood triggers for comments appropriately
+
 = 1.5.0 =
 * Fix bug causing posts to overwrite global post when they shouldn't
 * Fix bug in comment-email verification

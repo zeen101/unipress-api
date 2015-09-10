@@ -11,18 +11,15 @@ Plugin Name: UniPress API
 Plugin URI: http://getunipress.com/
 Description: A premium WordPress plugin by UniPress.
 Author: UniPress Development Team
-Version: 1.5.0
+Version: 1.6.0
 Author URI: http://getunipress.com/
 Tags:
 */
 
 //Define global variables...
-if ( !defined( 'UNIPRESS_STORE_URL' ) )
-	define( 'UNIPRESS_STORE_URL',	'http://getunipress.com' );
-	
 define( 'UNIPRESS_API_NAME', 		'UniPress API' );
 define( 'UNIPRESS_API_SLUG', 		'unipress-api' );
-define( 'UNIPRESS_API_VERSION', 	'1.5.0' );
+define( 'UNIPRESS_API_VERSION', 	'1.6.0' );
 define( 'UNIPRESS_API_DB_VERSION', 	'1.0.0' );
 define( 'UNIPRESS_API_URL', 		plugin_dir_url( __FILE__ ) );
 define( 'UNIPRESS_API_PATH', 		plugin_dir_path( __FILE__ ) );
@@ -31,7 +28,6 @@ define( 'UNIPRESS_API_REL_DIR', 	dirname( UNIPRESS_API_BASENAME ) );
 
 define( 'UNIPRESS_API_IOS_MAX_CHAR', 218 ); //characters
 define( 'UNIPRESS_API_ANDROID_MAX_CHAR', 4000 ); //characters
-
 
 /**
  * Instantiate UniPress API class, require helper files
