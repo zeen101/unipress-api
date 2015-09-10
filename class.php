@@ -2051,6 +2051,8 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$args['user_id']              = $user->ID;
 				}
 				
+				add_action( 'comment_duplicate_trigger', array( $this, 'comment_duplicate_trigger' ) );
+				add_action( 'comment_flood_trigger', array( $this, 'comment_flood_trigger' ), 10, 2 );
 				$comment_id = wp_new_comment( $args );
 										
 				if ( !empty( $comment_id ) ) {
@@ -2074,6 +2076,22 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				);
 				return $response;
 			}
+		}
+		
+		function comment_duplicate_trigger( $commentdata ) {
+			$response = array(
+				'http_code' => 409,
+				'body' 		=> __( 'Duplicate comment detected; it looks as though you&#8217;ve already said that!', 'unipress-api' ),
+			);
+			$this->api_response( $response );
+		}
+		
+		function comment_flood_trigger( $time_lastcomment, $time_newcomment ) {
+			$response = array(
+				'http_code' => 429,
+				'body' 		=> __( 'You are posting comments too quickly. Slow down.', 'unipress-api' ),
+			);
+			$this->api_response( $response );
 		}
 		
 		function get_css() {
