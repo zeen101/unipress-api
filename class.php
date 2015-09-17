@@ -1185,10 +1185,12 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$post->author_meta->nickname 		= get_the_author_meta( 'nickname', 			$post->post_author );
 				$post->author_meta->first_name 		= get_the_author_meta( 'first_name', 		$post->post_author );
 				$post->author_meta->last_name 		= get_the_author_meta( 'last_name', 		$post->post_author );
-				$post->author_meta->nickname 		= get_the_author_meta( 'nickname', 			$post->post_author );
 				$post->author_meta->user_firstname 	= get_the_author_meta( 'user_firstname', 	$post->post_author );
 				$post->author_meta->user_lastname 	= get_the_author_meta( 'user_lastname', 	$post->post_author );
 				$post->author_meta->description 	= get_the_author_meta( 'description', 		$post->post_author );
+				
+				$post->post_author = apply_filters( 'unipress_api_get_content_list_post_author', $post->post_author, $post );
+				$post->author_meta = apply_filters( 'unipress_api_get_content_list_author_meta', $post->author_meta, $post );
 				
 				$post->formatted_post_content = apply_filters( 'the_content', $post->post_content );
 				
@@ -1316,7 +1318,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					}
 
 				}
-
+				
 				if ( !empty( $post ) ) {
 					$args = array(
 						'post_type' 		=> 'attachment',
@@ -1362,11 +1364,12 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$post->author_meta->nickname 		= get_the_author_meta( 'nickname', 			$post->post_author );
 					$post->author_meta->first_name 		= get_the_author_meta( 'first_name', 		$post->post_author );
 					$post->author_meta->last_name 		= get_the_author_meta( 'last_name', 		$post->post_author );
-					$post->author_meta->nickname 		= get_the_author_meta( 'nickname', 			$post->post_author );
 					$post->author_meta->user_firstname 	= get_the_author_meta( 'user_firstname', 	$post->post_author );
 					$post->author_meta->user_lastname 	= get_the_author_meta( 'user_lastname', 	$post->post_author );
 					$post->author_meta->description 	= get_the_author_meta( 'description', 		$post->post_author );
 					
+					$post->post_author = apply_filters( 'unipress_api_get_article_post_author', $post->post_author, $post );
+					$post->author_meta = apply_filters( 'unipress_api_get_article_author_meta', $post->author_meta, $post );
 					$post->formatted_post_content = apply_filters( 'the_content', $post->post_content );
 					
 					if ( 'default' === $settings['excerpt-type'] ) {
