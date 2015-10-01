@@ -1291,7 +1291,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					
 					foreach( $restrictions['post_types'] as $key => $restriction ) {
 						
-						if ( $post->post_type == $restriction['post_type'] ) {
+						if ( !empty( $restriction['post_type'] ) && $post->post_type == $restriction['post_type'] ) {
 						
 							if ( 0 <= $restriction['allowed_value'] ) {
 						
