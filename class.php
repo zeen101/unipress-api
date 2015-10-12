@@ -913,7 +913,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					if ( !empty( $_POST['push-type'] ) && !empty( $_POST['push-content'] ) ) { //this happens before the save_post_unipress-push, so we need to pull from _POST
 						$args = array(
 							'headers'	=> array( 'content-type' => 'application/json' ),
-							'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'message' => $_POST['push-content'] ) ),
+							'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'message' => stripslashes( $_POST['push-content'] ) ) ),
 						);
 						$response = wp_remote_post( $push_url, $args );
 					}
