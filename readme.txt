@@ -3,7 +3,7 @@ Contributors: layotte, pericson, endocreative
 Tags: mobile, app, api
 Requires at least: 3.3
 Tested up to: 4.4
-Stable tag: 1.7.0
+Stable tag: 1.8.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,8 +76,13 @@ You must have:
 * UniPress API is GPL.
 
 == Changelog ==
+
+= 1.8.0 =
+* Strip slashes of POST argument in push notifications
+* Fixing bug caused when Leaky Paywall is enabled but no default restrictions are set
+
 = 1.7.0 =
-Adding filters for post author and author meta
+* Adding filters for post author and author meta
 
 = 1.6.0 =
 * Handling Duplicate and Flood triggers for comments appropriately
