@@ -2,8 +2,8 @@
 Contributors: layotte, pericson, endocreative
 Tags: mobile, app, api
 Requires at least: 3.3
-Tested up to: 4.4
-Stable tag: 1.8.0
+Tested up to: 4.5
+Stable tag: 1.9.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,9 @@ You must have:
 * UniPress API is GPL.
 
 == Changelog ==
+
+= 1.9.0 =
+* Get all Ads by default with get-ad-data API call
 
 = 1.8.0 =
 * Strip slashes of POST argument in push notifications
