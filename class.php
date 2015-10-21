@@ -1626,6 +1626,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				}
 				
 				$args = array(
+					'posts_per_page' => -1,
 					'post_type' 	=> 'unipress-ad',
 					'meta_query' 	=> array(
 						array(
