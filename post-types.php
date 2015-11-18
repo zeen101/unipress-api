@@ -188,9 +188,10 @@ if ( !function_exists( 'unipress_api_push_metaboxes' ) ) {
 if ( !function_exists( 'unipress_push_meta_box' ) ) {
 	
 	function unipress_push_meta_box( $post ) {
-		$push_type = get_post_meta( $post->ID, '_push_type', true );
-		$push_content = get_post_meta( $post->ID, '_push_content', true );
-		$max_length = ( 'android' === $push_type ) ? UNIPRESS_API_ANDROID_MAX_CHAR : UNIPRESS_API_IOS_MAX_CHAR;
+		$push_type     = get_post_meta( $post->ID, '_push_type', true );
+		$delivery_type = get_post_meta( $post->ID, '_delivery_type', true );
+		$push_content  = get_post_meta( $post->ID, '_push_content', true );
+		$max_length    = ( 'android' === $push_type ) ? UNIPRESS_API_ANDROID_MAX_CHAR : UNIPRESS_API_IOS_MAX_CHAR;
 		?>
 		
 		<div id="unipress-push-metabox">
@@ -201,6 +202,14 @@ if ( !function_exists( 'unipress_push_meta_box' ) ) {
 				<option value="all" <?php selected( 'all', $push_type ) ?>><?php _e( 'Both iOS and Android', 'unipress-api' ); ?></option>
 				<option value="iOS" <?php selected( 'ios', $push_type ) ?>><?php _e( 'iOS', 'unipress-api' ); ?></option>
 				<option value="Android" <?php selected( 'android', $push_type ) ?>><?php _e( 'Android', 'unipress-api' ); ?></option>
+			</select>
+			</p>
+			
+			<p>
+			<label for="unipress-push-delivery"><?php _e( 'Push Delivery:', 'issuem' ); ?></label>&nbsp;
+			<select id="unipress-push-delivery" name="delivery-type">
+				<option value="categories" <?php selected( 'categories', $delivery_type ) ?>><?php _e( 'Categories Only', 'unipress-api' ); ?></option>
+				<option value="all_users" <?php selected( 'all_users', $delivery_type ) ?>><?php _e( 'All Users', 'unipress-api' ); ?></option>
 			</select>
 			</p>
 			
@@ -254,6 +263,11 @@ if ( !function_exists( 'save_unipress_push_meta_box' ) ) {
 			update_post_meta( $post_id, '_push_type', $_POST['push-type'] );
 		else
 			delete_post_meta( $post_id, '_push_type' );
+			
+		if ( !empty( $_POST['delivery-type'] ) )
+			update_post_meta( $post_id, '_delivery_type', $_POST['delivery-type'] );
+		else
+			delete_post_meta( $post_id, '_delivery_type' );
 			
 		if ( !empty( $_POST['push-content'] ) )
 			update_post_meta( $post_id, '_push_content', $_POST['push-content'] );

@@ -352,12 +352,36 @@ if ( !function_exists( 'unipress_api_leaky_paywall_has_user_paid' ) ) {
 }
 
 if ( !function_exists( 'unipress_leaky_paywall_subscriber_payment_gateways' ) ) {
-	
 	function unipress_leaky_paywall_subscriber_payment_gateways( $payment_gateways ) {
 		$payment_gateways['ios']     = __( 'Apple Payment Gateway', 'unipress-api' );
 		$payment_gateways['android'] = __( 'Google Payment Gateway', 'unipress-api' );
 		return $payment_gateways;
 	}
 	add_filter( 'leaky_paywall_subscriber_payment_gateways', 'unipress_leaky_paywall_subscriber_payment_gateways' );
-	
+}
+
+if ( !function_exists( 'unipress_get_device_ids_assigned_to_term_id' ) ) {
+	function unipress_get_device_ids_assigned_to_term_id( $term_id ) {
+		global $wpdb;
+		$device_ids = array();
+		$sql = $wpdb->prepare(
+			"
+			SELECT meta_key
+			FROM $wpdb->usermeta
+			WHERE 
+			meta_key LIKE '%s'
+			AND
+			meta_value = '%d'
+			",
+			'unipress-push-categories-%',
+			$term_id
+		);
+		$results = $wpdb->get_col( $sql );
+		if ( !empty( $results ) ) {
+			foreach( $results as $result ) {
+				$device_ids[] = str_replace( 'unipress-push-categories-', '', $result );
+			}
+		}
+		return $device_ids;
+	}
 }

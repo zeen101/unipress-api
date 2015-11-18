@@ -47,6 +47,7 @@ function unipress_api_plugins_loaded() {
 		
 		require_once( 'functions.php' );
 		require_once( 'post-types.php' );
+		require_once( 'taxonomies.php' );
 		require_once( 'shortcodes.php' );
 				
 		if ( !empty( $_REQUEST['unipress-api'] ) ) {

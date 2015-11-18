@@ -152,6 +152,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			
 			add_submenu_page( 'unipress-settings', __( 'Push Notifications', 'unipress-api' ), __( 'Push Notifications', 'unipress-api' ), apply_filters( 'manage_unipress_api_settings', 'manage_options' ), 'edit.php?post_type=unipress-push' );
 			add_submenu_page( 'unipress-settings', __( 'New Push', 'unipress-api' ), __( 'New Push', 'unipress-api' ), apply_filters( 'manage_unipress_api_settings', 'manage_options' ), 'post-new.php?post_type=unipress-push' );
+			add_submenu_page( 'unipress-settings', __( 'Push Categories', 'unipress-api' ), __( 'Push Categories', 'unipress-api' ), apply_filters( 'manage_unipress_api_settings', 'manage_options' ), 'edit-tags.php?taxonomy=unipress-push-category' );
 
 		}
 		
@@ -908,21 +909,59 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$push_url = 'http://toronto.briskmobile.com:8091/paywall/1.1/%s/push?secretkey=%s'; //development
 				}
 				$push_url = sprintf( $push_url, $settings['app-id'], $settings['secret-key'] );
+				
+				$delivery_type = !empty( $_POST['delivery-type'] ) ? $_POST['delivery-type'] : 'all_users';
+
+				if ( 'categories' === $delivery_type ) {
+					$terms = wp_get_post_terms( $post->ID, 'unipress-push-category' );
+					$device_ids = array();
+					if ( !empty( $terms ) ) {
+						foreach( $terms as $term ) {
+							$devices = unipress_get_device_ids_assigned_to_term_id( $term->term_id );
+							$device_ids = array_merge( $device_ids, $devices );
+						}
+						$device_ids = array_unique( $device_ids );
+					}
+				} else {
+					$device_ids = false;
+				}
 
 				if ( 'unipress-push' === $post->post_type ) {
-					if ( !empty( $_POST['push-type'] ) && !empty( $_POST['push-content'] ) ) { //this happens before the save_post_unipress-push, so we need to pull from _POST
+					if ( !empty( $_POST['push-type'] ) && !empty( $_POST['push-content'] ) ) { 
+						//this happens before the save_post_unipress-push, so we need to pull from _POST
+						if ( !empty( $device_ids ) && is_array( $device_ids ) ) {
+							$args = array(
+								'headers'	=> array( 'content-type' => 'application/json' ),
+								'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'message' => stripslashes( $_POST['push-content'] ), 'device-ids' => $device_ids ) ),
+							);
+						} else if ( false === $device_ids ) {
+							$args = array(
+								'headers'	=> array( 'content-type' => 'application/json' ),
+								'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'message' => stripslashes( $_POST['push-content'] ) ) ),
+							);
+						}
+						if ( !empty( $args ) ) {
+							wp_mail( 'lew@lewayotte.com', '$args', print_r( $args, true ) );
+							$response = wp_remote_post( $push_url, $args );
+						}
+					}
+				} else if ( !empty( $settings['silent-push'] ) && 'post' === $post->post_type ) { 
+					//assume it's the only type of content that we want to send a silent notification for...
+					if ( !empty( $device_ids ) && is_array( $device_ids ) ) {
 						$args = array(
 							'headers'	=> array( 'content-type' => 'application/json' ),
-							'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'message' => stripslashes( $_POST['push-content'] ) ) ),
+							'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'post_date' => $post->post_date_gmt, 'device-ids' => $device_ids ) ),
 						);
+					} else if ( false === $device_ids ) {
+						$args = array(
+							'headers'	=> array( 'content-type' => 'application/json' ),
+							'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'post_date' => $post->post_date_gmt ) ),
+						);
+					}
+					if ( !empty( $args ) ) {
+						wp_mail( 'lew@lewayotte.com', '$args', print_r( $args, true ) );
 						$response = wp_remote_post( $push_url, $args );
 					}
-				} else if ( !empty( $settings['silent-push'] ) && 'post' === $post->post_type ) { //assume it's the only type of content that we want to send a silent notification for...
-					$args = array(
-						'headers'	=> array( 'content-type' => 'application/json' ),
-						'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'], 'post_date' => $post->post_date_gmt ) ),
-					);
-					$response = wp_remote_post( $push_url, $args );
 				}
 				
 				if ( !empty( $response ) && is_wp_error( $response ) ) {
@@ -989,6 +1028,14 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						
 					case 'get-js':
 						$this->api_response( $this->get_js() );
+						break;
+						
+					case 'get-push-categories':
+						$this->api_response( $this->get_push_categories() );
+						break;
+						
+					case 'set-push-categories':
+						$this->api_response( $this->set_push_categories() );
 						break;
 						
 					default:
@@ -2114,7 +2161,96 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				'body' 		=> $settings['js'],
 			);
 			return $response;
-		}		
+		}
+		
+		function get_push_categories() {
+			try {
+				if ( empty( $_REQUEST['device-id'] ) ) {
+					$selected_terms = array();
+				} else {
+					$device_id = trim( $_REQUEST['device-id'] );
+					$user = unipress_api_get_user_by_device_id( $device_id );
+					if ( empty( $user ) ) {
+						$selected_terms = array();
+					} else {
+						$selected_terms = get_user_meta( $user->ID, 'unipress-push-categories-' . $device_id );
+					}
+				}
+	
+				$args = array(
+				    'orderby'           => 'name', 
+				    'order'             => 'ASC',
+				    'hide_empty'        => false, 
+				    'hierarchical'      => true, 
+				); 
+				$terms = get_terms( 'unipress-push-category', $args );
+	
+				foreach( $terms as &$term ) {
+					if ( in_array( $term->term_id, $selected_terms ) ) {
+						$term->selected = true;
+					} else {
+						$term->selected = false;
+					}
+				}
+				$response = array(
+					'http_code' => 200,
+					'body' 		=> $terms,
+				);
+				return $response;
+			}
+			catch ( Exception $e ) {
+				$response = array(
+					'http_code' => $e->getCode(),
+					'body' 		=> $e->getMessage(),
+				);
+				return $response;
+			}
+		}
+		
+		function set_push_categories() {
+			try {
+				$input = file_get_contents('php://input');
+				$post = json_decode( $input, TRUE ); 
+				if ( empty( $post['category-ids'] ) ) {
+					throw new Exception( __( 'Missing Category IDs.', 'unipress-api' ), 400 );
+				} else {
+					foreach( $post['category-ids'] as $cat_id ) {
+						if ( !is_numeric( $cat_id ) ) {
+							throw new Exception( __( 'Invalid Category ID Format.', 'unipress-api' ), 400 );
+						}
+					}
+				}
+
+				if ( empty( $post['device-id'] ) ) {
+					throw new Exception( __( 'Missing Device ID.', 'unipress-api' ), 400 );
+				} else {
+					$device_id = trim( $post['device-id'] );
+				}
+				
+				$user = unipress_api_get_user_by_device_id( trim( $post['device-id'] ) );
+				
+				if ( empty( $user ) ) {
+					throw new Exception( __( 'Unable to locate user for this device.', 'unipress-api' ), 400 );
+				}
+				delete_user_meta( $user->ID, 'unipress-push-categories-' . $device_id );
+				foreach( $post['category-ids'] as $cat_id ) {
+					add_user_meta( $user->ID, 'unipress-push-categories-' . $device_id, $cat_id );
+				}
+				$response = array(
+					'http_code' => 201,
+					'body' 		=> __( 'Categories Assigned.', 'unipress-api' ),
+				);
+				
+				return $response;
+			}
+			catch ( Exception $e ) {
+				$response = array(
+					'http_code' => $e->getCode(),
+					'body' 		=> $e->getMessage(),
+				);
+				return $response;
+			}
+		}
 
 	}
 
