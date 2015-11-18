@@ -941,7 +941,6 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 							);
 						}
 						if ( !empty( $args ) ) {
-							wp_mail( 'lew@lewayotte.com', '$args', print_r( $args, true ) );
 							$response = wp_remote_post( $push_url, $args );
 						}
 					}
@@ -950,16 +949,15 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					if ( !empty( $device_ids ) && is_array( $device_ids ) ) {
 						$args = array(
 							'headers'	=> array( 'content-type' => 'application/json' ),
-							'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'post_date' => $post->post_date_gmt, 'device-ids' => $device_ids ) ),
+							'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'], 'post_date' => $post->post_date_gmt, 'device-ids' => $device_ids ) ),
 						);
 					} else if ( false === $device_ids ) {
 						$args = array(
 							'headers'	=> array( 'content-type' => 'application/json' ),
-							'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'post_date' => $post->post_date_gmt ) ),
+							'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'], 'post_date' => $post->post_date_gmt ) ),
 						);
 					}
 					if ( !empty( $args ) ) {
-						wp_mail( 'lew@lewayotte.com', '$args', print_r( $args, true ) );
 						$response = wp_remote_post( $push_url, $args );
 					}
 				}
