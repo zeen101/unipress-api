@@ -30,7 +30,7 @@ function unipress_push_taxonomies() {
 		'show_in_nav_menus'          => false,
 		'show_tagcloud'              => false,
 	);
-	register_taxonomy( 'unipress-push-category', array( 'post', ' article', 'unipress-push' ), $args );
+	register_taxonomy( 'unipress-push-category', apply_filters( 'unipress_push_taxonomies_post_types', array( 'post', ' article', 'unipress-push' ) ), $args );
 
 }
 add_action( 'init', 'unipress_push_taxonomies', 0 );
