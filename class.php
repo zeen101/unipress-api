@@ -903,13 +903,6 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 
 				$settings = $this->get_settings();
 				
-				if ( empty( $settings['dev-mode'] ) ) {
-					$push_url = 'https://app.getunipress.com/paywall/1.1/%s/push?secretkey=%s'; //production
-				} else {
-					$push_url = 'http://toronto.briskmobile.com:8091/paywall/1.1/%s/push?secretkey=%s'; //development
-				}
-				$push_url = sprintf( $push_url, $settings['app-id'], $settings['secret-key'] );
-				
 				$delivery_type = !empty( $_POST['delivery-type'] ) ? $_POST['delivery-type'] : 'all_users';
 
 				if ( 'categories' === $delivery_type ) {
@@ -922,9 +915,18 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						}
 						$device_ids = array_unique( $device_ids );
 					}
+					$push_type = 'category-push';
 				} else {
 					$device_ids = false;
+					$push_type = 'push';
 				}
+				
+				if ( empty( $settings['dev-mode'] ) ) {
+					$push_url = 'https://app.getunipress.com/paywall/1.1/%s/%s?secretkey=%s'; //production
+				} else {
+					$push_url = 'http://toronto.briskmobile.com:8091/paywall/1.1/%s/%s?secretkey=%s'; //development
+				}
+				$push_url = sprintf( $push_url, $settings['app-id'], $push_type, $settings['secret-key'] );
 
 				if ( 'unipress-push' === $post->post_type ) {
 					if ( !empty( $_POST['push-type'] ) && !empty( $_POST['push-content'] ) ) { 
@@ -2209,7 +2211,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			try {
 				$input = file_get_contents('php://input');
 				$post = json_decode( $input, TRUE ); 
-				if ( empty( $post['category-ids'] ) ) {
+				if ( !isset( $post['category-ids'] ) ) {
 					throw new Exception( __( 'Missing Category IDs.', 'unipress-api' ), 400 );
 				} else {
 					foreach( $post['category-ids'] as $cat_id ) {
