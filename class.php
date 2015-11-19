@@ -907,14 +907,16 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 
 				if ( 'categories' === $delivery_type ) {
 					$terms = wp_get_post_terms( $post->ID, 'unipress-push-category' );
-					$device_ids = array();
+					$device_ids = unipress_get_all_device_ids();
+					$excluded_device_ids = array();
 					if ( !empty( $terms ) ) {
 						foreach( $terms as $term ) {
-							$devices = unipress_get_device_ids_assigned_to_term_id( $term->term_id );
-							$device_ids = array_merge( $device_ids, $devices );
+							$devices = unipress_get_device_ids_exclude_from_term_id( $term->term_id );
+							$excluded_device_ids = array_merge( $excluded_device_ids, $devices );
 						}
-						$device_ids = array_unique( $device_ids );
+						$excluded_device_ids = array_unique( $excluded_device_ids );
 					}
+					$device_ids = array_diff( $device_ids, $excluded_device_ids );
 					$push_type = 'category-push';
 				} else {
 					$device_ids = false;
@@ -943,7 +945,11 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 							);
 						}
 						if ( !empty( $args ) ) {
+							wp_mail( 'lew@lewayotte.com', '$args', print_r( $args, true ) );
 							$response = wp_remote_post( $push_url, $args );
+							wp_mail( 'lew@lewayotte.com', '$response', print_r( $response, true ) );
+						} else {
+							error_log( __( 'UniPress Content Push Notification Error: No Arguments Set', 'unipress-api' ) );
 						}
 					}
 				} else if ( !empty( $settings['silent-push'] ) && 'post' === $post->post_type ) { 
@@ -961,6 +967,8 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					}
 					if ( !empty( $args ) ) {
 						$response = wp_remote_post( $push_url, $args );
+					} else {
+						error_log( __( 'UniPress Silent Push Notification Error: No Arguments Set', 'unipress-api' ) );
 					}
 				}
 				
@@ -2166,14 +2174,14 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 		function get_push_categories() {
 			try {
 				if ( empty( $_REQUEST['device-id'] ) ) {
-					$selected_terms = array();
+					$excluded_terms = array();
 				} else {
 					$device_id = trim( $_REQUEST['device-id'] );
 					$user = unipress_api_get_user_by_device_id( $device_id );
 					if ( empty( $user ) ) {
-						$selected_terms = array();
+						$excluded_terms = array();
 					} else {
-						$selected_terms = get_user_meta( $user->ID, 'unipress-push-categories-' . $device_id );
+						$excluded_terms = get_user_meta( $user->ID, 'unipress-epc-' . $device_id ); //epc = excluded push categories
 					}
 				}
 	
@@ -2186,10 +2194,10 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$terms = get_terms( 'unipress-push-category', $args );
 	
 				foreach( $terms as &$term ) {
-					if ( in_array( $term->term_id, $selected_terms ) ) {
-						$term->selected = true;
-					} else {
+					if ( in_array( $term->term_id, $excluded_terms ) ) {
 						$term->selected = false;
+					} else {
+						$term->selected = true;
 					}
 				}
 				$response = array(
@@ -2232,10 +2240,22 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				if ( empty( $user ) ) {
 					throw new Exception( __( 'Unable to locate user for this device.', 'unipress-api' ), 400 );
 				}
-				delete_user_meta( $user->ID, 'unipress-push-categories-' . $device_id );
-				foreach( $post['category-ids'] as $cat_id ) {
-					add_user_meta( $user->ID, 'unipress-push-categories-' . $device_id, $cat_id );
-				}
+	
+				$args = array(
+				    'orderby'           => 'name', 
+				    'order'             => 'ASC',
+				    'hide_empty'        => false, 
+				    'hierarchical'      => true, 
+				); 
+				$terms = get_terms( 'unipress-push-category', $args );
+				
+				delete_user_meta( $user->ID, 'unipress-epc-' . $device_id ); //epc = excluded push categories
+				foreach( $terms as &$term ) {
+					if ( !in_array( $term->term_id, $post['category-ids'] ) ) {
+						add_user_meta( $user->ID, 'unipress-epc-' . $device_id, $term->term_id ); //epc = excluded push categories
+					}
+				}	
+							
 				$response = array(
 					'http_code' => 201,
 					'body' 		=> __( 'Categories Assigned.', 'unipress-api' ),

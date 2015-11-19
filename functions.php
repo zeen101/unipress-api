@@ -360,8 +360,25 @@ if ( !function_exists( 'unipress_leaky_paywall_subscriber_payment_gateways' ) ) 
 	add_filter( 'leaky_paywall_subscriber_payment_gateways', 'unipress_leaky_paywall_subscriber_payment_gateways' );
 }
 
-if ( !function_exists( 'unipress_get_device_ids_assigned_to_term_id' ) ) {
-	function unipress_get_device_ids_assigned_to_term_id( $term_id ) {
+if ( !function_exists( 'unipress_get_all_device_ids' ) ) {
+	function unipress_get_all_device_ids() {
+		global $wpdb;
+		$device_ids = array();
+		$sql = $wpdb->prepare(
+			"
+			SELECT meta_value
+			FROM $wpdb->usermeta
+			WHERE 
+			meta_key LIKE '%s'
+			",
+			'unipress-devices'
+		);
+		return $wpdb->get_col( $sql );
+	}
+}
+
+if ( !function_exists( 'unipress_get_device_ids_exclude_from_term_id' ) ) {
+	function unipress_get_device_ids_exclude_from_term_id( $term_id ) {
 		global $wpdb;
 		$device_ids = array();
 		$sql = $wpdb->prepare(
@@ -373,13 +390,13 @@ if ( !function_exists( 'unipress_get_device_ids_assigned_to_term_id' ) ) {
 			AND
 			meta_value = '%d'
 			",
-			'unipress-push-categories-%',
+			'unipress-epc-%', //epc = excluded push categories
 			$term_id
 		);
 		$results = $wpdb->get_col( $sql );
 		if ( !empty( $results ) ) {
 			foreach( $results as $result ) {
-				$device_ids[] = str_replace( 'unipress-push-categories-', '', $result );
+				$device_ids[] = str_replace( 'unipress-epc-', '', $result ); //epc = excluded push categories
 			}
 		}
 		return $device_ids;
