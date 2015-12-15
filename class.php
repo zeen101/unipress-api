@@ -957,12 +957,12 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					if ( !empty( $device_ids ) && is_array( $device_ids ) ) {
 						$args = array(
 							'headers'	=> array( 'content-type' => 'application/json' ),
-							'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'], 'post_date' => $post->post_date_gmt, 'device-ids' => $device_ids ) ),
+							'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'], 'post_date' => $post->post_date_gmt, 'device-ids' => $device_ids, 'post_id' => $post->ID ) ),
 						);
 					} else if ( false === $device_ids ) {
 						$args = array(
 							'headers'	=> array( 'content-type' => 'application/json' ),
-							'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'], 'post_date' => $post->post_date_gmt ) ),
+							'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'], 'post_date' => $post->post_date_gmt, 'post_id' => $post->ID ) ),
 						);
 					}
 					if ( !empty( $args ) ) {
