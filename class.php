@@ -1014,7 +1014,12 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						$this->api_response( $this->set_subscription() );
 						break;
 						
+					case 'create-user':
+						$this->api_response( $this->create_user() );
+						break;
+						
 					case 'update-subscriber':
+					case 'update-user':
 						$this->api_response( $this->update_subscriber() );
 						break;
 						
@@ -1854,6 +1859,79 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						'http_code' => 417,
 						'body' 		=> __( 'Unable to create subscriber.', 'unipress-api' ),
 					);
+				}
+				
+				return $response;
+			}
+			catch ( Exception $e ) {
+				$response = array(
+					'http_code' => $e->getCode(),
+					'body' 		=> $e->getMessage(),
+				);
+				return $response;
+			}
+		}
+		
+		function create_user() {
+			try {
+				$input = file_get_contents('php://input');
+				$post = json_decode( $input, TRUE );
+				
+				if ( empty( $post['device-id'] ) ) {
+					throw new Exception( __( 'Missing Device ID.', 'unipress-api' ), 400 );
+				}
+				
+				if ( empty( $post['device-type'] ) ) {
+					throw new Exception( __( 'Missing Device Type.', 'unipress-api' ), 400 );
+				} else {
+					if ( !( 'ios' === strtolower( $post['device-type'] ) || 'android' === strtolower( $post['device-type'] ) ) ) {
+						throw new Exception( __( 'Invalid Device Type. Must be iOS or Android.', 'unipress-api' ), 400 );						
+					}
+				}
+								
+				if ( $user = unipress_api_get_user_by_device_id( trim( $post['device-id'] ) ) ) {
+					$existing_user = true;
+				} else {
+					$existing_user = false;
+					//Create Guest User
+					do {
+						$username = 'unipress_' . uniqid();
+						$user = get_user_by( 'login', $username ); 
+					} while( false !== $user );
+					
+					$url = parse_url( get_bloginfo( 'wpurl' ) );
+					
+					//We need to generate a fake user for iOS subscribers
+					$login = $username;
+					$email = $username . '@' . $url['host'];
+				}
+														
+				if ( $existing_user ) {
+					$response = array(
+						'http_code' => 201,
+						'body' 		=> __( 'User Already Exists', 'unipress-api' ),
+					);
+				} else {
+	                $userdata = array(
+						'user_login'		=> $login,
+						'user_pass'	 		=> wp_generate_password(),
+						'user_email'		=> $email,
+						'user_registered'	=> date_i18n( 'Y-m-d H:i:s' ),
+					);
+	                $userdata = apply_filters( 'unipress_api_userdata_before_user_create', $userdata );
+					$user_id = wp_insert_user( $userdata );
+					if ( !empty( $user_id ) ) {
+						add_user_meta( $user_id, 'unipress-devices', $post['device-id'] );
+						$response = array(
+							'http_code' => 200,
+							'body' 		=> __( 'User Created', 'unipress-api' ),
+						);
+					} else {
+						$response = array(
+							'http_code' => 417,
+							'body' 		=> __( 'Unable to create user.', 'unipress-api' ),
+						);
+					}
 				}
 				
 				return $response;
