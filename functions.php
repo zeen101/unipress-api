@@ -390,13 +390,13 @@ if ( !function_exists( 'unipress_get_device_ids_exclude_from_term_id' ) ) {
 			AND
 			meta_value = '%d'
 			",
-			'unipress-epc-%', //epc = excluded push categories
+			'upepc-%', //epc = excluded push categories
 			$term_id
 		);
 		$results = $wpdb->get_col( $sql );
 		if ( !empty( $results ) ) {
 			foreach( $results as $result ) {
-				$device_ids[] = str_replace( 'unipress-epc-', '', $result ); //epc = excluded push categories
+				$device_ids[] = str_replace( 'upepc-', '', $result ); //epc = excluded push categories
 			}
 		}
 		return $device_ids;

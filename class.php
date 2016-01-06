@@ -926,7 +926,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				if ( empty( $settings['dev-mode'] ) ) {
 					$push_url = 'https://app.getunipress.com/paywall/1.1/%s/%s?secretkey=%s'; //production
 				} else {
-					$push_url = 'http://toronto.briskmobile.com:8091/paywall/1.1/%s/%s?secretkey=%s'; //development
+					$push_url = 'http://devmode.getunipress.com/paywall/1.1/%s/%s?secretkey=%s'; //development
 				}
 				$push_url = sprintf( $push_url, $settings['app-id'], $push_type, $settings['secret-key'] );
 
@@ -945,9 +945,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 							);
 						}
 						if ( !empty( $args ) ) {
-							wp_mail( 'lew@lewayotte.com', '$args', print_r( $args, true ) );
 							$response = wp_remote_post( $push_url, $args );
-							wp_mail( 'lew@lewayotte.com', '$response', print_r( $response, true ) );
 						} else {
 							error_log( __( 'UniPress Content Push Notification Error: No Arguments Set', 'unipress-api' ) );
 						}
@@ -2259,7 +2257,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					if ( empty( $user ) ) {
 						$excluded_terms = array();
 					} else {
-						$excluded_terms = get_user_meta( $user->ID, 'unipress-epc-' . $device_id ); //epc = excluded push categories
+						$excluded_terms = get_user_meta( $user->ID, 'upepc-' . $device_id ); //epc = excluded push categories
 					}
 				}
 	
@@ -2327,13 +2325,13 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				); 
 				$terms = get_terms( 'unipress-push-category', $args );
 				
-				delete_user_meta( $user->ID, 'unipress-epc-' . $device_id ); //epc = excluded push categories
+				delete_user_meta( $user->ID, 'upepc-' . $device_id ); //epc = excluded push categories
 				foreach( $terms as &$term ) {
 					if ( !in_array( $term->term_id, $post['category-ids'] ) ) {
-						add_user_meta( $user->ID, 'unipress-epc-' . $device_id, $term->term_id ); //epc = excluded push categories
+						add_user_meta( $user->ID, 'upepc-' . $device_id, $term->term_id ); //epc = excluded push categories
 					}
-				}	
-							
+				}
+										
 				$response = array(
 					'http_code' => 201,
 					'body' 		=> __( 'Categories Assigned.', 'unipress-api' ),
