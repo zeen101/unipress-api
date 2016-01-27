@@ -3,7 +3,7 @@ Contributors: layotte, pericson, endocreative
 Tags: mobile, app, api
 Requires at least: 3.3
 Tested up to: 4.5
-Stable tag: 1.9.0
+Stable tag: 1.10.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,13 @@ You must have:
 * UniPress API is GPL.
 
 == Changelog ==
+
+= 1.10.0 =
+* Change settings so they save even when there is an error verifying the App ID
+* Added an API call to create s user, not a subscriber
+* Added Post ID to silent pushes
+* Adding Push Categories
+* Added filter to push taxonomy
 
 = 1.9.0 =
 * Get all Ads by default with get-ad-data API call
