@@ -40,7 +40,8 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 	        add_action( 'wp_head', array( $this, 'deeplinks' ) );
 	        
 			include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-			if ( is_plugin_active( 'issuem-leaky-paywall/issuem-leaky-paywall.php' ) ) {
+			if ( is_plugin_active( 'issuem-leaky-paywall/issuem-leaky-paywall.php' )
+				|| is_plugin_active( 'leaky-paywall/leaky-paywall.php' ) ) {
 				$this->leaky_paywall_enabled = true;
 				add_filter( 'leaky_paywall_subscriber_info_paid_subscriber_end', array( $this, 'leaky_paywall_subscriber_info_paid_subscriber_end' ) );
 			} else {
@@ -301,7 +302,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				if ( !empty( $_REQUEST['excluded-cats'] ) ) {
 					$settings['excluded-cats'] = $_REQUEST['excluded-cats'];
 				} else {
-					unset( $settings['excluded-cats'] );
+					$settings['excluded-cats'] = array();
 				}
 				
 				//Deeplinks
@@ -403,12 +404,12 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					foreach( $errors as $error ) {
 						echo $error;
 					}
-				} else {
-					$this->update_settings( $settings );
-					// update settings notification ?>
-					<div class="updated"><p><strong><?php _e( 'UniPress Settings Updated.', 'unipress-api' );?></strong></p></div>
-					<?php
 				}
+
+				$this->update_settings( $settings );
+				// update settings notification ?>
+				<div class="updated"><p><strong><?php _e( 'UniPress Settings Updated.', 'unipress-api' );?></strong></p></div>
+				<?php
 				
 				do_action( 'update_unipress_api_settings', $settings );
 				
@@ -915,8 +916,17 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 							$excluded_device_ids = array_merge( $excluded_device_ids, $devices );
 						}
 						$excluded_device_ids = array_unique( $excluded_device_ids );
+					} else {
+						foreach( $device_ids as $device_id ) {
+							if ( unipress_is_device_id_unsubscribed_from_all_categories( $device_id ) ) {
+								//If a user has unsubscribed from every category and the site owner doesn't select a category
+								//Then we want to remove the user's device from this push
+								$excluded_device_ids[] = $device_id;
+							}
+						}
 					}
 					$device_ids = array_diff( $device_ids, $excluded_device_ids );
+					$device_ids = array_values( $device_ids ); //rekey the array
 					$push_type = 'category-push';
 				} else {
 					$device_ids = false;
@@ -2326,10 +2336,18 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$terms = get_terms( 'unipress-push-category', $args );
 				
 				delete_user_meta( $user->ID, 'upepc-' . $device_id ); //epc = excluded push categories
-				foreach( $terms as &$term ) {
+				$term_count = count( $terms );
+				$exclude_count = 0;
+				foreach( $terms as $term ) {
 					if ( !in_array( $term->term_id, $post['category-ids'] ) ) {
+						$exclude_count++;
 						add_user_meta( $user->ID, 'upepc-' . $device_id, $term->term_id ); //epc = excluded push categories
 					}
+				}
+				if ( $term_count === $exclude_count ) {
+					update_user_meta( $user->ID, 'uppcu-' . $device_id, true ); //UniPress Push Cateogires Unsubscribed = true
+				} else {
+					update_user_meta( $user->ID, 'uppcu-' . $device_id, false ); //UniPress Push Cateogires Unsubscribed = false
 				}
 										
 				$response = array(

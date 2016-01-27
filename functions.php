@@ -402,3 +402,19 @@ if ( !function_exists( 'unipress_get_device_ids_exclude_from_term_id' ) ) {
 		return $device_ids;
 	}
 }
+
+if ( !function_exists( 'unipress_is_device_id_unsubscribed_from_all_categories' ) ) {
+	function unipress_is_device_id_unsubscribed_from_all_categories( $device_id ) {
+		global $wpdb;
+		$sql = $wpdb->prepare(
+			"
+			SELECT meta_value
+			FROM $wpdb->usermeta
+			WHERE 
+			meta_key LIKE '%s'
+			",
+			'uppcu-' . $device_id //pcu = push categories unsubscribed
+		);
+		return $wpdb->get_col( $sql );
+	}
+}
