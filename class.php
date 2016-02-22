@@ -172,6 +172,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				'app-id' 					=> '',
 				'secret-key' 				=> '',
 				'silent-push' 				=> true,
+				'enable-offline-reading' 	=> false,
 				'attachment-baseurl' 		=> '', //For CDNs
 				'excerpt-type' 				=> 'default',
 				'excerpt-size' 				=> 55,
@@ -275,6 +276,12 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$settings['silent-push'] = true;
 				} else {
 					$settings['silent-push'] = false;
+				}
+					
+				if ( !empty( $_REQUEST['enable-offline-reading'] ) ) {
+					$settings['enable-offline-reading'] = true;
+				} else {
+					$settings['enable-offline-reading'] = false;
 				}
 					
 				if ( !empty( $_REQUEST['attachment-baseurl'] ) ) {
@@ -527,6 +534,12 @@ if ( ! class_exists( 'UniPress_API' ) ) {
                                 <td>
                                 	<p><input type="checkbox" id="silent-push" name="silent-push" <?php checked( $settings['silent-push'] ); ?> /></p>
                                 	<p class="description"><?php _e( 'Silent Push tells the mobile device when new content is available and caches the latest content', 'unipress' ); ?></p>
+                                </td>
+                            </tr> 
+                        	<tr>
+                                <th><?php _e( 'Enable Offline Reading', 'unipress-api' ); ?></th>
+                                <td>
+                                	<p><input type="checkbox" id="enable-offline-reading" name="enable-offline-reading" <?php checked( $settings['enable-offline-reading'] ); ?> /></p>
                                 </td>
                             </tr> 
                         	<tr>
@@ -1057,6 +1070,10 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						
 					case 'set-push-categories':
 						$this->api_response( $this->set_push_categories() );
+						break;
+						
+					case 'get-offline-reading-mode':
+						$this->api_response( $this->get_offline_reading_mode() );
 						break;
 						
 					default:
@@ -2364,6 +2381,15 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				);
 				return $response;
 			}
+		}
+		
+		function get_offline_reading_mode() {
+			$settings = $this->get_settings();
+			$response = array(
+				'http_code' => 200,
+				'body' 		=> $settings['enable-offline-reading'],
+			);
+			return $response;
 		}
 
 	}
