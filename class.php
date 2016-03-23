@@ -171,6 +171,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				'dev-mode' 					=> false,
 				'app-id' 					=> '',
 				'secret-key' 				=> '',
+				'article-notifications' 	=> false,
 				'silent-push' 				=> true,
 				'enable-offline-reading' 	=> false,
 				'attachment-baseurl' 		=> '', //For CDNs
@@ -270,6 +271,12 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$settings['secret-key'] = trim( $_REQUEST['secret-key'] );
 				} else {
 					$settings['secret-key'] = '';
+				}
+					
+				if ( !empty( $_REQUEST['article-notifications'] ) ) {
+					$settings['article-notifications'] = true;
+				} else {
+					$settings['article-notifications'] = false;
 				}
 					
 				if ( !empty( $_REQUEST['silent-push'] ) ) {
@@ -529,6 +536,13 @@ if ( ! class_exists( 'UniPress_API' ) ) {
                                 	<p><input type="text" id="secret-key" class="" name="secret-key" value="<?php echo htmlspecialchars( stripcslashes( $settings['secret-key'] ) ); ?>" /></p>
                                 </td>
                             </tr>
+                        	<tr>
+                                <th><?php _e( 'Article Notification', 'unipress-api' ); ?></th>
+                                <td>
+                                	<p><input type="checkbox" id="article-notifications" name="article-notifications" <?php checked( $settings['article-notifications'] ); ?> /></p>
+                                	<p class="description"><?php _e( 'Article Notifications sends the mobile device a notification when a new article is published', 'unipress' ); ?></p>
+                                </td>
+                            </tr> 
                         	<tr>
                                 <th><?php _e( 'Silent Push Notification', 'unipress-api' ); ?></th>
                                 <td>
@@ -918,31 +932,17 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$settings = $this->get_settings();
 				
 				$delivery_type = !empty( $_POST['delivery-type'] ) ? $_POST['delivery-type'] : 'all_users';
+				$article_notification = get_post_meta( $post->ID, 'unipress_article_notification', true );
 
 				if ( 'categories' === $delivery_type ) {
-					$terms = wp_get_post_terms( $post->ID, 'unipress-push-category' );
-					$device_ids = unipress_get_all_device_ids();
-					$excluded_device_ids = array();
-					if ( !empty( $terms ) ) {
-						foreach( $terms as $term ) {
-							$devices = unipress_get_device_ids_exclude_from_term_id( $term->term_id );
-							$excluded_device_ids = array_merge( $excluded_device_ids, $devices );
-						}
-						$excluded_device_ids = array_unique( $excluded_device_ids );
-					} else {
-						foreach( $device_ids as $device_id ) {
-							if ( unipress_is_device_id_unsubscribed_from_all_categories( $device_id ) ) {
-								//If a user has unsubscribed from every category and the site owner doesn't select a category
-								//Then we want to remove the user's device from this push
-								$excluded_device_ids[] = $device_id;
-							}
-						}
-					}
-					$device_ids = array_diff( $device_ids, $excluded_device_ids );
-					$device_ids = array_values( $device_ids ); //rekey the array
+					$device_ids = unipress_get_article_device_ids( $post );
 					$push_type = 'category-push';
 				} else {
-					$device_ids = false;
+					if ( !empty( $settings['article-notifications'] ) && !empty( $article_notification ) ) {
+						$device_ids = unipress_get_article_device_ids( $post );
+					} else {
+						$device_ids = false;
+					}
 					$push_type = 'push';
 				}
 				
@@ -954,6 +954,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$push_url = sprintf( $push_url, $settings['app-id'], $push_type, $settings['secret-key'] );
 
 				if ( 'unipress-push' === $post->post_type ) {
+					
 					if ( !empty( $_POST['push-type'] ) && !empty( $_POST['push-content'] ) ) { 
 						//this happens before the save_post_unipress-push, so we need to pull from _POST
 						if ( !empty( $device_ids ) && is_array( $device_ids ) ) {
@@ -973,7 +974,28 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 							error_log( __( 'UniPress Content Push Notification Error: No Arguments Set', 'unipress-api' ) );
 						}
 					}
+					
+				} else if ( !empty( $settings['article-notifications'] ) && 'on' === $article_notification ) {
+					
+					if ( !empty( $device_ids ) && is_array( $device_ids ) ) {
+						$args = array(
+							'headers'	=> array( 'content-type' => 'application/json' ),
+							'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'], 'message' => stripslashes( $post->post_title ), 'post_date' => $post->post_date_gmt, 'device-ids' => $device_ids, 'post_id' => $post->ID ) ),
+						);
+					} else if ( false === $device_ids ) {
+						$args = array(
+							'headers'	=> array( 'content-type' => 'application/json' ),
+							'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'], 'message' => stripslashes( $post->post_title ), 'post_date' => $post->post_date_gmt, 'post_id' => $post->ID ) ),
+						);
+					}
+					if ( !empty( $args ) ) {
+						$response = wp_remote_post( $push_url, $args );
+					} else {
+						error_log( __( 'UniPress Article Push Notification Error: No Arguments Set', 'unipress-api' ) );
+					}
+					
 				} else if ( !empty( $settings['silent-push'] ) && 'post' === $post->post_type ) { 
+					
 					//assume it's the only type of content that we want to send a silent notification for...
 					if ( !empty( $device_ids ) && is_array( $device_ids ) ) {
 						$args = array(
@@ -991,6 +1013,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					} else {
 						error_log( __( 'UniPress Silent Push Notification Error: No Arguments Set', 'unipress-api' ) );
 					}
+					
 				}
 				
 				if ( !empty( $response ) && is_wp_error( $response ) ) {
