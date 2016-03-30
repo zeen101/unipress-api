@@ -940,10 +940,11 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				} else {
 					if ( !empty( $settings['article-notifications'] ) && !empty( $article_notification ) ) {
 						$device_ids = unipress_get_article_device_ids( $post );
+						$push_type = 'category-push';
 					} else {
 						$device_ids = false;
+						$push_type = 'push';
 					}
-					$push_type = 'push';
 				}
 				
 				if ( empty( $settings['dev-mode'] ) ) {
