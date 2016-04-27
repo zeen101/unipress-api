@@ -13,6 +13,8 @@ if ( !function_exists( 'unipress_register_meta_boxes' ) ) {
 
 if ( !function_exists( 'save_unipress_meta_box' ) ) {
 	function save_unipress_meta_box( $post_id ) {
+		global $post;
+
         if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
             return;
         }

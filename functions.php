@@ -412,6 +412,8 @@ if ( !function_exists( 'unipress_is_device_id_unsubscribed_from_all_categories' 
 			FROM $wpdb->usermeta
 			WHERE 
 			meta_key LIKE '%s'
+			AND
+			meta_value = 1
 			",
 			'uppcu-' . $device_id //pcu = push categories unsubscribed
 		);
@@ -425,19 +427,19 @@ if ( !function_exists( 'unipress_get_article_device_ids' ) ) {
 		$device_ids = unipress_get_all_device_ids();
 		$excluded_device_ids = array();
 		if ( !empty( $terms ) ) {
+			foreach( $device_ids as $device_id ) {
+				if ( unipress_is_device_id_unsubscribed_from_all_categories( $device_id ) ) {
+					//If a user has unsubscribed from every category we want to remove the user's device from this push
+					$excluded_device_ids[] = $device_id;
+				}
+			}
 			foreach( $terms as $term ) {
 				$devices = unipress_get_device_ids_exclude_from_term_id( $term->term_id );
 				$excluded_device_ids = array_merge( $excluded_device_ids, $devices );
 			}
 			$excluded_device_ids = array_unique( $excluded_device_ids );
 		} else {
-			foreach( $device_ids as $device_id ) {
-				if ( unipress_is_device_id_unsubscribed_from_all_categories( $device_id ) ) {
-					//If a user has unsubscribed from every category and the site owner doesn't select a category
-					//Then we want to remove the user's device from this push
-					$excluded_device_ids[] = $device_id;
-				}
-			}
+			return array();
 		}
 		$device_ids = array_diff( $device_ids, $excluded_device_ids );
 		return array_values( $device_ids ); //rekey the array

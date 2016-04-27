@@ -1378,6 +1378,8 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					}
 				}
 				
+				global $post;
+				
 				$settings = $this->get_settings();
 				$is_restricted = false;
 				$upload_dir = wp_upload_dir();
