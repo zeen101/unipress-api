@@ -961,12 +961,12 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						if ( !empty( $device_ids ) && is_array( $device_ids ) ) {
 							$args = array(
 								'headers'	=> array( 'content-type' => 'application/json' ),
-								'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'message' => stripslashes( $_POST['push-content'] ), 'device-ids' => $device_ids ) ),
+								'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'message' => stripslashes( $_POST['push-content'] ), 'device-ids' => $device_ids, 'post_id' => $post->ID ) ),
 							);
 						} else if ( false === $device_ids ) {
 							$args = array(
 								'headers'	=> array( 'content-type' => 'application/json' ),
-								'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'message' => stripslashes( $_POST['push-content'] ) ) ),
+								'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'message' => stripslashes( $_POST['push-content'] ), 'post_id' => $post->ID ) ),
 							);
 						}
 						if ( !empty( $args ) ) {
@@ -2196,12 +2196,15 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$args['post_id'] = $_REQUEST['article-id'];
 				}
 				
-				$args['number'] 	= !empty( $_REQUEST['number'] ) 	? $_REQUEST['number'] 	: 10;
-				$args['offset'] 	= !empty( $_REQUEST['offset'] ) 	? $_REQUEST['offset'] 	: 0;
-				$args['orderby'] 	= !empty( $_REQUEST['orderby'] ) 	? $_REQUEST['orderby'] 	: 'comment_date_gmt';
-				$args['order'] 		= !empty( $_REQUEST['order'] ) 		? $_REQUEST['order'] 	: 'DESC';
-				$args['status']		= !empty( $_REQUEST['status'] ) 	? $_REQUEST['status'] 	: 'approve';
-				
+				$_args['number'] 	= !empty( $_REQUEST['number'] ) 	? $_REQUEST['number'] 	: 10;
+				$_args['offset'] 	= !empty( $_REQUEST['offset'] ) 	? $_REQUEST['offset'] 	: 0;
+				$_args['orderby'] 	= !empty( $_REQUEST['orderby'] ) 	? $_REQUEST['orderby']  : 'comment_date_gmt';
+				$_args['order'] 	= !empty( $_REQUEST['order'] ) 		? $_REQUEST['order']    : 'DESC';
+				$_args['status'] 	= !empty( $_REQUEST['status'] ) 	? $_REQUEST['status']   : 'approve';
+
+				$args['order'] 		= 'ASC';
+				$args['orderby'] 	= $_args['orderby'];
+				$args['status']		= $_args['status'];
 				$comments = get_comments( $args );
 				
 				if ( !empty( $comments ) ) {
@@ -2212,6 +2215,12 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						$comment->gravatar_url = 'http://www.gravatar.com/avatar/' . $hash;
 						
 					}
+					
+					$comments = unipress_recursive_order_comments( $comments );
+					if ( 'ASC' === strtoupper( $_args['order'] ) ) {
+						$comments = array_reverse( $comments );
+					}
+					$comments = array_slice( $comments, $_args['offset'], $_args['number'] );
 					
 				}
 					
@@ -2300,9 +2309,10 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$comment_id = wp_new_comment( $args );
 										
 				if ( !empty( $comment_id ) ) {
+					$comment = get_comment( $comment_id );
 					$response = array(
 						'http_code' => 201,
-						'body' 		=> __( 'Comment added.', 'unipress-api' ),
+						'body' 		=> $comment,
 					);
 				} else {
 					$response = array(

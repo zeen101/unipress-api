@@ -445,3 +445,19 @@ if ( !function_exists( 'unipress_get_article_device_ids' ) ) {
 		return array_values( $device_ids ); //rekey the array
 	}
 }
+
+if ( !function_exists( 'unipress_recursive_order_comments' ) ) {
+	function unipress_recursive_order_comments( $_comments, $parent_id = 0 ) {
+		$parents = array();
+		if ( !empty( $_comments ) ) {
+			foreach( $_comments as $_key => $_comment ) {
+				if ( $parent_id == $_comment->comment_parent ) {
+					$parents[] = $_comment;
+					unset( $_comments[$_key] );
+					$parents = array_merge( $parents, unipress_recursive_order_comments( $_comments, $_comment->comment_ID ) );
+				}
+			}
+		}
+		return $parents;
+	}
+}
