@@ -2299,7 +2299,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						throw new Exception( __( 'Unable to locate user for this device.', 'unipress-api' ), 400 );
 					}
 				} else {
-					$args['comment_author']       = $user->user_login;
+					$args['comment_author']       = $user->display_name;
 					$args['comment_author_email'] = $user->user_email;
 					$args['user_id']              = $user->ID;
 				}
