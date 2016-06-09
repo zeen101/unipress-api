@@ -2310,6 +2310,8 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 										
 				if ( !empty( $comment_id ) ) {
 					$comment = get_comment( $comment_id );
+                                        $hash = md5( strtolower( trim( $comment->comment_author_email ) ) );
+                                        $comment->gravatar_url = 'http://www.gravatar.com/avatar/' . $hash;
 					$response = array(
 						'http_code' => 201,
 						'body' 		=> $comment,

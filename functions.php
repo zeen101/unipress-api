@@ -92,6 +92,7 @@ if ( !function_exists( 'unipress_api_add_new_device_row_ajax' ) ) {
 		die( unipress_api_device_row() );
 	}
 	add_action( 'wp_ajax_unipress-api-add-new-device-row', 'unipress_api_add_new_device_row_ajax' );
+	add_action( 'wp_ajax_norpiv_unipress-api-add-new-device-row', 'unipress_api_add_new_device_row_ajax' );
 	
 }
 
@@ -110,6 +111,7 @@ if ( !function_exists( 'unipress_api_delete_device_ajax' ) ) {
 		die();
 	}
 	add_action( 'wp_ajax_unipress-api-delete-device-row', 'unipress_api_delete_device_ajax' );
+	add_action( 'wp_ajax_nopriv_unipress-api-delete-device-row', 'unipress_api_delete_device_ajax' );
 	
 }
 
