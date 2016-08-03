@@ -2031,6 +2031,10 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					throw new Exception( $response->get_error_message(), 401 );
 		        }
 		        
+		        while ( $existing_user = unipress_api_get_user_by_device_id( trim( $post['device-id'] ) ) ) {
+			        delete_user_meta( $existing_user->ID, 'unipress-devices', $post['device-id'] );
+		        }
+		        
 		        $devices = get_user_meta( $user->ID, 'unipress-devices' );
 		        if ( !in_array( $post['device-id'], $devices ) ) {
 					add_user_meta( $user->ID, 'unipress-devices', $post['device-id'] );
