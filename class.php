@@ -2028,7 +2028,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$user = wp_authenticate( $post['username'], $post['password'] );
 				
 		        if ( is_wp_error( $user ) ) {
-					throw new Exception( $response->get_error_message(), 401 );
+					throw new Exception( $user->get_error_message(), 401 );
 		        }
 		        
 		        while ( $existing_user = unipress_api_get_user_by_device_id( trim( $post['device-id'] ) ) ) {
@@ -2393,7 +2393,9 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				    'hierarchical'      => true, 
 				); 
 				$terms = get_terms( 'unipress-push-category', $args );
-	
+					
+				$excluded_terms = apply_filters( 'unipress_excluded_terms', $excluded_terms, $terms );
+
 				foreach( $terms as &$term ) {
 					if ( in_array( $term->term_id, $excluded_terms ) ) {
 						$term->selected = false;
