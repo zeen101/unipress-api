@@ -2006,6 +2006,62 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			}
 		}
 		
+        function login_user() {
+            try {
+	            $input = file_get_contents('php://input');
+	            $post = json_decode( $input, TRUE );
+	
+	            if ( empty( $post['device-id'] ) ) {
+                    throw new Exception( __( 'Missing Device ID.', 'unipress-api' ), 400 );
+	            }
+	
+	            if ( empty( $post['device-type'] ) ) {
+                    throw new Exception( __( 'Missing Device Type.', 'unipress-api' ), 400 );
+	            } else {
+                    if ( !( 'ios' === strtolower( $post['device-type'] ) || 'android' === strtolower( $post['device-type'] ) ) ) {
+                        throw new Exception( __( 'Invalid Device Type. Must be iOS or Android.', 'unipress-api' ), 400 );
+                    }
+	            }
+	
+	            if ( empty( $post['username'] ) ) {
+                    throw new Exception( __( 'Missing Username.', 'unipress-api' ), 400 );
+	            }
+	
+	            if ( empty( $post['password'] ) ) {
+                    throw new Exception( __( 'Missing Password.', 'unipress-api' ), 400 );
+	            }
+	
+	            $user = wp_authenticate( $post['username'], $post['password'] );
+
+	            if ( is_wp_error( $user ) ) {
+                    throw new Exception( $user->get_error_message(), 401 );
+	            }
+
+	            while ( $existing_user = unipress_api_get_user_by_device_id( trim( $post['device-id'] ) ) ) {
+                    delete_user_meta( $existing_user->ID, 'unipress-devices', $post['device-id'] );
+	            }
+
+	            $devices = get_user_meta( $user->ID, 'unipress-devices' );
+	            if ( !in_array( $post['device-id'], $devices ) ) {
+                    add_user_meta( $user->ID, 'unipress-devices', $post['device-id'] );
+	            }
+
+                $response = array(
+                    'http_code' => 200,
+                    'body'          => __( 'User Logged In', 'unipress-api' ),
+                );
+
+                return $response;
+            }
+            catch ( Exception $e ) {
+	            $response = array(
+                    'http_code' => $e->getCode(),
+                    'body'          => $e->getMessage(),
+	            );
+	            return $response;
+            }
+        }
+
 		function logout() {
 			try {
 				$input = file_get_contents('php://input');

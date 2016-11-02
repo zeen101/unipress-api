@@ -31,7 +31,7 @@ function unipress_api_post_types() {
 		'has_archive' 			=> false,
 		'hierarchical' 			=> false,
 		'menu_position' 		=> null,
-		'supports' 				=> array( 'title', 'thumbnail' )
+		'supports' 				=> array( 'title', 'thumbnail', 'author' )
 	);
 	
 	register_post_type( 'unipress-ad', $args );
@@ -66,7 +66,7 @@ function unipress_api_post_types() {
 		'has_archive' 			=> false,
 		'hierarchical' 			=> false,
 		'menu_position' 		=> null,
-		'supports' 				=> array( 'title' )
+		'supports' 				=> array( 'title', 'author' )
 	);
 	
 	register_post_type( 'unipress-push', $args );
