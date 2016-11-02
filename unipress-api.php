@@ -43,13 +43,13 @@ function unipress_api_plugins_loaded() {
 		
 		global $unipress_api;
 		
-		$unipress_api = new UniPress_API();
-		
 		require_once( 'functions.php' );
 		require_once( 'post-types.php' );
 		require_once( 'taxonomies.php' );
 		require_once( 'shortcodes.php' );
 		require_once( 'post-meta-boxes.php' );
+		
+		$unipress_api = new UniPress_API();
 				
 		if ( !empty( $_REQUEST['unipress-api'] ) ) {
 			add_filter( 'jetpack_check_mobile', '__return_false' ); //JetPack messes with the mobile menu, so return false on UniPress API calls

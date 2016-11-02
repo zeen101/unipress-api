@@ -6,6 +6,27 @@
  * @since 1.0.0
  */
  
+if ( !function_exists( 'do_unipress_show_content' ) ) { 
+
+	/**
+	 * Shortcode for UniPress to hide content that you don't want to show on the app
+	 *
+	 * @since 1.0.0
+	 */
+	function unipress_show_content( $atts, $content=null ) {
+	
+		if ( !empty( $_GET['unipress-api'] ) ) {
+			return do_shortcode( $content );
+		}
+		
+		return '';
+		
+	}
+	add_shortcode( 'unipress_show_content', 'unipress_show_content' );
+	add_shortcode( 'unipress-show-content', 'unipress_show_content' );
+	
+}
+ 
 if ( !function_exists( 'do_unipress_hide_content' ) ) { 
 
 	/**
