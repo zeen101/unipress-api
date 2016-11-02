@@ -3,7 +3,7 @@ Contributors: layotte, pericson, endocreative
 Tags: mobile, app, api
 Requires at least: 3.3
 Tested up to: 4.7
-Stable tag: 1.13.0
+Stable tag: 1.13.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,10 @@ You must have:
 * UniPress API is GPL.
 
 == Changelog ==
+
+= 1.13.1 =
+* Adding author to Ads and Push notifications
+* Fix missing login method
 
 = 1.13.0 =
 * Adding LogOut API call
