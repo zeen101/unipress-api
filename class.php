@@ -1762,7 +1762,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				
 				if ( !empty( $ads ) ) {
 					foreach ( $ads as $key => $ad ) {
-						$ad_link = get_post_meta( $ad->ID, '_ad_link', true );
+						$ad_link = do_shortcode( get_post_meta( $ad->ID, '_ad_link', true ) );
 						if ( !empty( $ad_link ) ) {
 							$body[$key]['ad_link' ] = $ad_link;							
 						}
