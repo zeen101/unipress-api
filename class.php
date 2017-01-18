@@ -963,12 +963,12 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						if ( !empty( $device_ids ) && is_array( $device_ids ) ) {
 							$args = array(
 								'headers'	=> array( 'content-type' => 'application/json' ),
-								'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'message' => stripslashes( $_POST['push-content'] ), 'device-ids' => $device_ids, 'post_id' => $post->ID ) ),
+								'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'message' => stripslashes( $_POST['push-content'] ), 'device-ids' => $device_ids ) ),
 							);
 						} else if ( false === $device_ids ) {
 							$args = array(
 								'headers'	=> array( 'content-type' => 'application/json' ),
-								'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'message' => stripslashes( $_POST['push-content'] ), 'post_id' => $post->ID ) ),
+								'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'message' => stripslashes( $_POST['push-content'] ) ) ),
 							);
 						}
 						if ( !empty( $args ) ) {
