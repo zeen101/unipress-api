@@ -1662,7 +1662,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				
 				$response['body'] = $post;
 				
-				return $response;
+				return apply_filters( 'unipress_api_get_article_response', $response, $device_id );
 			}
 			catch ( Exception $e ) {
 				$response = array(
@@ -2046,12 +2046,12 @@ if ( ! class_exists( 'UniPress_API' ) ) {
                     add_user_meta( $user->ID, 'unipress-devices', $post['device-id'] );
 	            }
 
-                $response = array(
+	            $response = array(
                     'http_code' => 200,
-                    'body'          => __( 'User Logged In', 'unipress-api' ),
+                    'body'          => __( 'User Logged In', 'unipress-api' )
                 );
 
-                return $response;
+                return apply_filters( 'unipress_api_login_user_response', $response, $post['username'] );
             }
             catch ( Exception $e ) {
 	            $response = array(
