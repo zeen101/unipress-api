@@ -212,6 +212,19 @@ if ( !function_exists( 'unipress_api_get_user_level_id_by_device_id' ) ) {
 	
 }
 
+if ( !function_exists( 'unipress_api_get_user_level_id_by_user_id' ) ) {
+	
+	function unipress_api_get_user_level_id_by_user_id( $user_id ) {
+		$settings = get_leaky_paywall_settings();
+		$mode = 'off' === $settings['test_mode'] ? 'live' : 'test';
+
+		$level_id = get_user_meta( $user_id, '_issuem_leaky_paywall_' . $mode . '_level_id', true );
+		$level_id = apply_filters( 'get_leaky_paywall_subscription_level_level_id', $level_id );
+		return $level_id;
+	}
+	
+}
+
 if ( !function_exists( 'unipress_api_get_user_by_device_id' ) ) {
 	
 	function unipress_api_get_user_by_device_id( $device_id ) {

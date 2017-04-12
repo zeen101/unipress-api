@@ -836,14 +836,14 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						echo '<meta name="twitter:app:url:iphone" content="' . $settings['dl-custom-schema'] . '://post/' . $post->ID .'">' . "\n";
 						echo '<meta name="twitter:app:name:ipad" content="' . $settings['dl-ios-app-name'] . '">' . "\n";
 						echo '<meta name="twitter:app:id:ipad" content="' . $settings['dl-ios-app-id'] . '">' . "\n";
-						echo '<meta name="twitter:app:url:ipad" content="' . $settings['dl-custom-schema'] . '://post/' . $post->ID .'">' . "\n";
+						echo '<meta name="twitter:app:url:ipad" content="' . $settings['dl-custom-schema'] . '://post/' . $post->ID . '">' . "\n";
 					}
 					
 					/* Facebook iOS */
 					if ( $settings['dl-ios-facebook-enabled'] ) {
 						echo '<meta property="al:ios:app_name" content="' . $settings['dl-ios-app-name'] . '" />' . "\n";
 						echo '<meta property="al:ios:app_store_id" content="' . $settings['dl-ios-app-id'] . '" />' . "\n";
-						echo '<meta property="al:ios:url" content="' . $settings['dl-custom-schema'] . '://post/' . $post->ID .'" />' . "\n";
+						echo '<meta property="al:ios:url" content="' . $settings['dl-custom-schema'] . '://post/' . $post->ID . '" />' . "\n";
 					}
 				}
 				
@@ -862,7 +862,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					if ( $settings['dl-android-facebook-enabled'] ) {
 						echo '<meta property="al:android:app_name" content="' . $settings['dl-android-app-name'] . '">' . "\n";
 						echo '<meta property="al:android:package" content="' . $settings['dl-android-app-id'] . '">' . "\n";
-						echo '<meta property="al:android:url" content="' . $settings['dl-custom-schema'] . '://post/' . $post->ID .'">' . "\n";
+						echo '<meta property="al:android:url" content="' . $settings['dl-custom-schema'] . '://post/' . $post->ID . '">' . "\n";
 					}
 				}
 				
@@ -1108,6 +1108,10 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						
 					case 'get-offline-reading-mode':
 						$this->api_response( $this->get_offline_reading_mode() );
+						break;
+						
+					case 'get-post-id':
+						$this->api_response( $this->get_post_id() );
 						break;
 						
 					default:
@@ -1702,23 +1706,36 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					throw new Exception( __( 'User Token has Expired. Please generate a new one.', 'unipress-api' ), 400 );
 				}
 				
-				$devices = get_user_meta( $user_id, 'unipress-devices' );
+				$return['devices'] = get_user_meta( $user_id, 'unipress-devices' );
 				
-				if ( !empty( $devices ) && in_array( $post['device-id'], $devices ) ) {
+				if ( $this->leaky_paywall_enabled ) {
+				    $level_id = unipress_api_get_user_level_id_by_user_id( $user_id );
+				    
+					if ( !empty( $settings['subscription-ids'] ) ) {
+						foreach( $settings['subscription-ids'] as $app_id => $subscription_id ) {
+							if ( $level_id === $subscription_id ) {
+								$return['product-id']  = $app_id;
+								break;
+							}
+						}
+					}
+				}
+				
+				if ( !empty( $return['devices'] ) && in_array( $post['device-id'], $return['devices'] ) ) {
 					$response = array(
 						'http_code' => 201,
-						'body' 		=> __( "Device already exists on user's device list", 'unipress-api' ),
+						'body' 		=> array( 'success' => true, 'data' => $return )
 					);
-				} else if ( count( $devices ) >= $settings['device-limit'] ) {
+				} else if ( count( $return['devices'] ) >= $settings['device-limit'] ) {
 					$response = array(
 						'http_code' => 401,
-						'body' 		=> __( "User has reached device limit. Please remove devices before attempting to add new devices.", 'unipress-api' ),
+						'body' 		=> array( 'success' => false, 'data' => "User has reached device limit. Please remove devices before attempting to add new devices.", 'unipress-api' )
 					);
 				} else {
 					add_user_meta( $user_id, 'unipress-devices', $post['device-id'] );
 					$response = array(
 						'http_code' => 200,
-						'body' 		=> __( "Device added to user's device list", 'unipress-api' ),
+						'body' 		=> array( 'success' => true, 'data' => $return )
 					);
 				}
 				
@@ -2525,6 +2542,32 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				'body' 		=> $settings['enable-offline-reading'],
 			);
 			return $response;
+		}
+		
+		function get_post_id() {
+			try {
+				$input = file_get_contents('php://input');
+				$post = json_decode( $input, TRUE ); 
+				if ( !isset( $post['post-url'] ) ) {
+					throw new Exception( __( 'Missing Post URL.', 'unipress-api' ), 400 );
+				} else {
+					$post_id = url_to_postid( $post['post-url'] );
+				}
+										
+				$response = array(
+					'http_code' => 200,
+					'body' 		=> $post_id,
+				);
+				
+				return $response;
+			}
+			catch ( Exception $e ) {
+				$response = array(
+					'http_code' => $e->getCode(),
+					'body' 		=> $e->getMessage(),
+				);
+				return $response;
+			}
 		}
 
 	}
