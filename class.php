@@ -1318,7 +1318,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$post->formatted_post_content = apply_filters( 'the_content', $post->post_content );
 				
 				if ( 'default' === $settings['excerpt-type'] ) {
-					$excerpt = get_the_excerpt();
+					$excerpt = get_the_excerpt( $post );
 				} else {
 					$excerpt = str_replace( ']]>', ']]&gt;', $post->formatted_post_content ); //From wp-includes/formatting.php
 					$excerpt_more = apply_filters( 'excerpt_more', ' ' . '[&hellip;]' );
@@ -1498,7 +1498,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$post->formatted_post_content = apply_filters( 'the_content', $post->post_content );
 					
 					if ( 'default' === $settings['excerpt-type'] ) {
-						$excerpt = get_the_excerpt();
+						$excerpt = get_the_excerpt( $post );
 					} else {
 						$excerpt = str_replace( ']]>', ']]&gt;', $post->formatted_post_content ); //From wp-includes/formatting.php
 						$excerpt_more = apply_filters( 'excerpt_more', ' ' . '[&hellip;]' );

@@ -1,5 +1,5 @@
 === UniPress API ===
-Contributors: layotte, pericson, endocreative
+Contributors: zeen101, layotte, pericson, endocreative
 Tags: mobile, app, api
 Requires at least: 3.3
 Tested up to: 4.8
