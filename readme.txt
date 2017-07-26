@@ -3,7 +3,7 @@ Contributors: zeen101, layotte, pericson, endocreative
 Tags: mobile, app, api
 Requires at least: 3.3
 Tested up to: 4.8
-Stable tag: 1.15.0
+Stable tag: 1.16.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,9 @@ You must have:
 * UniPress API is GPL.
 
 == Changelog ==
+
+= 1.16.0 =
+* Fixing bug in get_the_excerpt() call
 
 = 1.15.0 =
 * Adding Post ID Api Call
