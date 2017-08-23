@@ -1579,7 +1579,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						if ( $is_restricted ) {
 							$response = array(
 								'http_code' => 403,
-								'body' 		=> $post,
+								'body' 		=> __( 'This article is not currently available to your subscription level.', 'unipress-api' ),
 							);
 							return $response;
 						}
@@ -2258,6 +2258,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$_args['order'] 	= !empty( $_REQUEST['order'] ) 		? $_REQUEST['order']    : 'DESC';
 				$_args['status'] 	= !empty( $_REQUEST['status'] ) 	? $_REQUEST['status']   : 'approve';
 
+				if ( $_args['number'] == -1 ) $_args['number'] = null;
 				$args['order'] 		= 'ASC';
 				$args['orderby'] 	= $_args['orderby'];
 				$args['status']		= $_args['status'];
