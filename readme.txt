@@ -26,7 +26,7 @@ Now news and magazine publishers can easily run their website and apps in one Wo
 Check out our pricing plans at [GetUniPress.com](https://getunipress.com/pricing-sign-up/).
 
 See how UniPress works:
-https://www.youtube.com/watch?v=dpSfiJdLYc8
+[youtube https://www.youtube.com/watch?v=dpSfiJdLYc]
 
 Developers can use this plugin to make custom apps for UniPress. If you are not a developer, please see our website for more information about creating an app with WordPress.
 This plugin is not an app-creator in itself, it serves as the core for all app development with UniPress.
