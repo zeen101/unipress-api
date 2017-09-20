@@ -978,14 +978,14 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						}
 					}
 					
-				} else if ( !empty( $settings['article-notifications'] ) && 'on' === $article_notification ) {
+				} else if ( !empty( $settings['article-notifications'] ) ) {
 					
 					if ( !empty( $device_ids ) && is_array( $device_ids ) ) {
 						$args = array(
 							'headers'	=> array( 'content-type' => 'application/json' ),
 							'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'], 'message' => stripslashes( $post->post_title ), 'post_date' => $post->post_date_gmt, 'device-ids' => $device_ids, 'post_id' => $post->ID ) ),
 						);
-					} else if ( false === $device_ids ) {
+					} else if ( empty( $device_ids ) ) {
 						$args = array(
 							'headers'	=> array( 'content-type' => 'application/json' ),
 							'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'], 'message' => stripslashes( $post->post_title ), 'post_date' => $post->post_date_gmt, 'post_id' => $post->ID ) ),
