@@ -965,7 +965,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 								'headers'	=> array( 'content-type' => 'application/json' ),
 								'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'message' => stripslashes( $_POST['push-content'] ), 'device-ids' => $device_ids ) ),
 							);
-						} else if ( false === $device_ids ) {
+						} else if ( empty( $device_ids ) ) {
 							$args = array(
 								'headers'	=> array( 'content-type' => 'application/json' ),
 								'body'		=> json_encode( array( 'device-type' => $_POST['push-type'], 'message' => stripslashes( $_POST['push-content'] ) ) ),
@@ -1005,7 +1005,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 							'headers'	=> array( 'content-type' => 'application/json' ),
 							'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'], 'post_date' => $post->post_date_gmt, 'device-ids' => $device_ids, 'post_id' => $post->ID ) ),
 						);
-					} else if ( false === $device_ids ) {
+					} else if ( empty( $device_ids ) ) {
 						$args = array(
 							'headers'	=> array( 'content-type' => 'application/json' ),
 							'body'		=> json_encode( array( 'device-type' => $settings['push-device-type'], 'post_date' => $post->post_date_gmt, 'post_id' => $post->ID ) ),
