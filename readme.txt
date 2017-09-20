@@ -3,7 +3,7 @@ Contributors: zeen101, layotte, pericson, endocreative
 Tags: mobile, app, api
 Requires at least: 3.3
 Tested up to: 4.9
-Stable tag: 1.17.0
+Stable tag: 1.17.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,9 @@ You must have:
 * UniPress API is GPL.
 
 == Changelog ==
+
+= 1.17.1 =
+* Fix for all pushes for users not using push categories
 
 = 1.17.0 =
 * Fix for push article-notifications
