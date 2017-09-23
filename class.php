@@ -979,6 +979,10 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					}
 					
 				} else if ( !empty( $settings['article-notifications'] ) ) {
+
+                                        if ( ! in_array( $post->post_type, apply_filters( 'unipress_push_notification_article_notification_post_types', array( 'post', 'article' ) ) ) ) {
+                                                return;
+                                        }
 					
 					if ( !empty( $device_ids ) && is_array( $device_ids ) ) {
 						$args = array(
