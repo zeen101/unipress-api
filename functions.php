@@ -225,6 +225,16 @@ if ( !function_exists( 'unipress_api_get_user_level_id_by_user_id' ) ) {
 	
 }
 
+if ( !function_exists( 'unipress_api_get_user_leaky_paywall_created_timestamp_by_user_id' ) ) {
+	
+	function unipress_api_get_user_leaky_paywall_created_timestamp_by_user_id( $user_id ) {
+		$settings = get_leaky_paywall_settings();
+		$mode = 'off' === $settings['test_mode'] ? 'live' : 'test';
+
+		return get_user_meta( $user_id, '_issuem_leaky_paywall_' . $mode . '_created', true );
+	}
+}
+
 if ( !function_exists( 'unipress_api_get_user_by_device_id' ) ) {
 	
 	function unipress_api_get_user_by_device_id( $device_id ) {

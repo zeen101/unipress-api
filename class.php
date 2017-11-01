@@ -1723,6 +1723,8 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 							}
 						}
 					}
+					
+					$return['created-timestamp'] = unipress_api_get_user_leaky_paywall_created_timestamp_by_user_id( $user_id );
 				}
 				
 				if ( !empty( $return['devices'] ) && in_array( $post['device-id'], $return['devices'] ) ) {
@@ -2067,9 +2069,24 @@ if ( ! class_exists( 'UniPress_API' ) ) {
                     add_user_meta( $user->ID, 'unipress-devices', $post['device-id'] );
 	            }
 
+				if ( $this->leaky_paywall_enabled ) {
+				    $level_id = unipress_api_get_user_level_id_by_user_id( $user->ID );
+				    
+					if ( !empty( $settings['subscription-ids'] ) ) {
+						foreach( $settings['subscription-ids'] as $app_id => $subscription_id ) {
+							if ( $level_id === $subscription_id ) {
+								$return['product-id']  = $app_id;
+								break;
+							}
+						}
+					}
+					
+					$return['created-timestamp'] = unipress_api_get_user_leaky_paywall_created_timestamp_by_user_id( $user->ID );
+				}
+
 	            $response = array(
                     'http_code' => 200,
-                    'body'          => __( 'User Logged In', 'unipress-api' )
+                    'body'      => $return
                 );
 
                 return apply_filters( 'unipress_api_login_user_response', $response, $post['username'] );
