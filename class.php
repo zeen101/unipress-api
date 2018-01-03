@@ -2071,6 +2071,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 
 				if ( $this->leaky_paywall_enabled ) {
 				    $level_id = unipress_api_get_user_level_id_by_user_id( $user->ID );
+					$settings = $this->get_settings();
 				    
 					if ( !empty( $settings['subscription-ids'] ) ) {
 						foreach( $settings['subscription-ids'] as $app_id => $subscription_id ) {
