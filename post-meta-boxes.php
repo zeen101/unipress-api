@@ -5,7 +5,7 @@ if ( !function_exists( 'unipress_register_meta_boxes' ) ) {
 		$settings = get_unipress_api_settings();
 		//If we end up adding more options, we might need to move this IF to the unipress_meta_box function
 		if ( !empty( $settings['article-notifications'] ) ) { 
-	    	add_meta_box( 'unipress-meta-box', __( 'UniPress Options', 'unipress-api' ), 'unipress_meta_box', array( 'post' ) );
+	    	add_meta_box( 'unipress-meta-box', __( 'UniPress Options', 'unipress-api' ), 'unipress_meta_box', apply_filters( 'unipress_push_notification_article_notification_post_types', array( 'post', 'article' ) ) );
 	    }
 	}
 	add_action( 'add_meta_boxes', 'unipress_register_meta_boxes' );
@@ -26,7 +26,7 @@ if ( !function_exists( 'save_unipress_meta_box' ) ) {
 		if ( !empty( $_REQUEST['article-notification'] ) ) {
 			update_post_meta( $post_id, 'unipress_article_notification', 'on' );
 		} else {
-			delete_post_meta( $post_id, 'unipress_article_notification', 'off' );
+			update_post_meta( $post_id, 'unipress_article_notification', 'off' );
 		}
 	}
 	add_action( 'save_post', 'save_unipress_meta_box' );
