@@ -173,7 +173,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				'dev-mode' 					=> false,
 				'app-id' 					=> '',
 				'secret-key' 				=> '',
-				'article-notifications' 	=> false,
+				'article-notifications' 	=> 'off',
 				'silent-push' 				=> true,
 				'enable-offline-reading' 	=> false,
 				'attachment-baseurl' 		=> '', //For CDNs
@@ -203,6 +203,13 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			$defaults = apply_filters( 'unipress_api_settings_defaults', $defaults );
 			
 			$settings = get_option( 'unipress-api' );
+			
+			//Fix for 1.17.6 switching from bool to string
+			if ( true === $settings['article-notifications'] ) {
+				$settings['article-notifications'] = 'on';
+			} else {
+				$settings['article-notifications'] = 'off';
+			}
 												
 			return wp_parse_args( $settings, $defaults );
 			
@@ -274,11 +281,11 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				} else {
 					$settings['secret-key'] = '';
 				}
-					
+									
 				if ( !empty( $_REQUEST['article-notifications'] ) ) {
-					$settings['article-notifications'] = true;
+					$settings['article-notifications'] = trim( $_REQUEST['article-notifications'] );
 				} else {
-					$settings['article-notifications'] = false;
+					$settings['article-notifications'] = 'off';
 				}
 					
 				if ( !empty( $_REQUEST['silent-push'] ) ) {
@@ -541,8 +548,13 @@ if ( ! class_exists( 'UniPress_API' ) ) {
                         	<tr>
                                 <th><?php _e( 'Article Notification', 'unipress-api' ); ?></th>
                                 <td>
-                                	<p><input type="checkbox" id="article-notifications" name="article-notifications" <?php checked( $settings['article-notifications'] ); ?> /></p>
-                                	<p class="description"><?php _e( 'Article Notifications sends the mobile device a notification when a new article is published', 'unipress' ); ?></p>
+                                	<p>
+										<select id="article-notifications" name="article-notifications">';
+											<option value="on" <?php selected( 'on', $settings['article-notifications'] ) ?>><?php _e( 'On by default', 'unipress-api' ) ?></option>
+											<option value="off" <?php selected( 'off', $settings['article-notifications'] ) ?>><?php _e( 'Off by default', 'unipress-api' ) ?></option>
+										</select>
+	                                </p>
+                                	<p class="description"><?php _e( 'Article Notifications sends the mobile device a notification when a new article is published (you will be able to change this setting per post).', 'unipress' ); ?></p>
                                 </td>
                             </tr> 
                         	<tr>
@@ -934,13 +946,15 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$settings = $this->get_settings();
 				
 				$delivery_type = !empty( $_POST['delivery-type'] ) ? $_POST['delivery-type'] : 'all_users';
-				$article_notification = get_post_meta( $post->ID, 'unipress_article_notification', true );
+				if ( ! $article_notification = get_post_meta( $post->ID, 'unipress_article_notification', true ) ) {
+					$article_notification = $settings['article-notifications'];
+				}
 
 				if ( 'categories' === $delivery_type ) {
 					$device_ids = unipress_get_article_device_ids( $post );
 					$push_type = 'category-push';
 				} else {
-					if ( !empty( $settings['article-notifications'] ) && !empty( $article_notification ) ) {
+					if ( 'on' === $article_notification ) {
 						$device_ids = unipress_get_article_device_ids( $post );
 						$push_type = 'category-push';
 					} else {
@@ -978,10 +992,10 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						}
 					}
 					
-				} else if ( !empty( $settings['article-notifications'] ) || 'on' === $article_notification ) {
+				} else if ( 'on' === $article_notification ) {
 
                     if ( ! in_array( $post->post_type, apply_filters( 'unipress_push_notification_article_notification_post_types', array( 'post', 'article' ) ) ) ) {
-                            return;
+                        return;
                     }
 					
 					if ( !empty( $device_ids ) && is_array( $device_ids ) ) {
