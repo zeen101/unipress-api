@@ -2018,7 +2018,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					);
 	                $userdata = apply_filters( 'unipress_api_userdata_before_user_create', $userdata );
 					$user_id = wp_insert_user( $userdata );
-	                do_action( 'unipress_api_after_wp_insert_user', $user_id );
+	                do_action( 'unipress_api_after_wp_insert_user', $user_id, $post );
 					if ( !empty( $user_id ) ) {
 						add_user_meta( $user_id, 'unipress-devices', $post['device-id'] );
 						$response = array(
