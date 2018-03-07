@@ -3,7 +3,7 @@ Contributors: zeen101, layotte, pericson, endocreative
 Tags: mobile, app, api
 Requires at least: 3.3
 Tested up to: 4.9
-Stable tag: 1.17.5
+Stable tag: 1.18.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,10 @@ You must have:
 * UniPress API is GPL.
 
 == Changelog ==
+
+= 1.18.0 =
+* Changing how post/article notifications are determined, for more flexibility
+* Adding unipress_api_after_wp_insert_user action
 
 = 1.17.5 =
 * Fixing bug causing Article Notifications not to work properly w/ IssueM Articles
