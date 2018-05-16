@@ -828,6 +828,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					echo '<meta name="twitter:card" content="app">' . "\n";
 					echo '<meta name="twitter:image" content="' . $settings['dl-app-logo-url'] . '">' . "\n";
 					echo '<meta name="twitter:title" content="' . $title . '">' . "\n";
+					echo '<meta name="twitter:description" content="' . $settings['dl-app-description'] . '">' . "\n";
 				}
 				
 				/* Facebook all (for all apps) */
@@ -867,7 +868,6 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						echo '<meta name="twitter:app:name:googleplay" content="' . $settings['dl-android-app-name'] . '" />' . "\n";
 						echo '<meta name="twitter:app:id:googleplay" content="' . $settings['dl-android-app-id'] . '" />' . "\n";
 						echo '<meta name="twitter:app:url:googleplay" content="' . $settings['dl-custom-schema'] . '://post/' . $post->ID .'" />' . "\n";
-						echo '<meta name="twitter:description" content="' . $settings['dl-app-description'] . '">' . "\n";
 					}
 					
 					/* Facebook Android */
