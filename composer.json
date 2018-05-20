@@ -1,0 +1,6 @@
+
+{
+  "name": "davisshaver/unipress",
+  "description": "Composer wrapper for plugin",
+  "type": "wordpress-plugin"
+}
