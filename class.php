@@ -205,7 +205,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			$settings = get_option( 'unipress-api' );
 			
 			//Fix for 1.17.6 switching from bool to string
-			if ( true === $settings['article-notifications'] ) {
+			if ( ! empty( $settings['article-notifications'] ) && true === $settings['article-notifications'] ) {
 				$settings['article-notifications'] = 'on';
 			} else {
 				$settings['article-notifications'] = 'off';
