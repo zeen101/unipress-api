@@ -1,6 +1,13 @@
-
 {
-  "name": "davisshaver/unipress-api",
-  "description": "Composer wrapper for plugin",
-  "type": "wordpress-plugin"
+	"name": "zeen101/unipress-api",
+	"description": "WordPress plugin to integrate with Unipress",
+	"homepage": "https://github.com/zeen101/unipress",
+	"keywords": [
+		"wordpress"
+	],
+	"support": {
+			"issues": "https://github.com/zeen101/unipress-api/issues",
+			"source": "https://github.com/zeen101/unipress-api"
+	},
+	"type": "wordpress-plugin"
 }
