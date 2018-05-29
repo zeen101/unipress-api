@@ -43,9 +43,6 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			if ( is_plugin_active( 'issuem-leaky-paywall/issuem-leaky-paywall.php' )
 				|| is_plugin_active( 'leaky-paywall/leaky-paywall.php' ) ) {
 				$this->leaky_paywall_enabled = apply_filters( 'unipress_api_leaky_paywall_enabled', true );
-				if ( $this->leaky_paywall_enabled ) {
-					add_filter( 'leaky_paywall_subscriber_info_paid_subscriber_end', array( $this, 'leaky_paywall_subscriber_info_paid_subscriber_end' ) );
-				}
 			} else {
 				$this->leaky_paywall_enabled = false;
 			}
@@ -905,38 +902,6 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			
 			return false;
 				
-		}
-		
-		function leaky_paywall_subscriber_info_paid_subscriber_end( $content ) {
-			
-			$settings = $this->get_settings();
-			$current_user = wp_get_current_user();
-			
-			if ( 0 !== $current_user->ID ) {
-				$devices = get_user_meta( $current_user->ID, 'unipress-devices' );
-				$content .= '<div id="unipress-devices">';
-				
-				$content .= '<div id="unipress-device-list">';
-				if ( !empty( $devices ) ) {
-					foreach( $devices as $device ) {
-						$content .= unipress_api_device_row( $device );
-					}
-				}
-				$content .= '</div>';
-				
-				$content .= '<div id="unipress-device-options">';
-				if ( count( $devices ) < $settings['device-limit'] ) {
-					$content .= '<a class="button unipress-add-new-device" href="#">Add New Mobile Device</a>';
-				} else {
-					$content .= '<p>' . __( 'You have reached your device limit, you must remove a device before adding new ones', 'unipress-api' ) . '</p>';
-				}
-				$content .= '</div>';
-				
-				$content .= '</div>';
-			}
-			
-			return $content;
-			
 		}
 		
 		function push_notification( $new_status, $old_status, $post ) {
