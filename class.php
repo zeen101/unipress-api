@@ -571,7 +571,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
                                 <th><?php _e( 'Attachment Baseurl', 'unipress-api' ); ?></th>
                                 <td>
                                 	<p><input type="text" id="attachment-baseurl" class="" name="attachment-baseurl" value="<?php echo htmlspecialchars( stripcslashes( $settings['attachment-baseurl'] ) ); ?>" /></p>
-                                	<p class="description"><?php _e( 'Change this if you are using a CDN to deliver your files.', 'unipress' ); ?></p>
+                                	<p class="description"><?php _e( 'Change this if you are using a CDN to deliver your uploads folder.', 'unipress' ); ?></p>
                                 </td>
                             </tr> 
                         	<tr>
