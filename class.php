@@ -819,23 +819,38 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$title = html_entity_decode( get_bloginfo( 'name' ), ENT_COMPAT, get_bloginfo('charset') );
 				}
 				$permalink = get_permalink( $post->ID );
-				
+
 				/* Twitter all (for all apps) */
-				if ( $settings['dl-ios-twitter-enabled'] || $settings['dl-android-twitter-enabled'] ) {
+				if (
+					apply_filters( 'unipress_twitter_core_meta', true ) &&
+					(
+						$settings['dl-ios-twitter-enabled'] ||
+						$settings['dl-android-twitter-enabled']
+					)
+				) {
 					echo '<meta name="twitter:card" content="app">' . "\n";
 					echo '<meta name="twitter:image" content="' . $settings['dl-app-logo-url'] . '">' . "\n";
 					echo '<meta name="twitter:title" content="' . $title . '">' . "\n";
 					echo '<meta name="twitter:description" content="' . $settings['dl-app-description'] . '">' . "\n";
 				}
-				
+
 				/* Facebook all (for all apps) */
 				if ( $settings['dl-ios-facebook-enabled'] || $settings['dl-android-facebook-enabled'] ) {
 					echo '<meta property="al:web:url" content="' . $permalink . '" />' . "\n";
 					echo '<meta property="al:web:should_fallback" content="' . ( $settings['dl-facebook-fallback'] ? 'true' : 'false' ) . '">' . "\n";
+				}
+
+				if (
+					apply_filters( 'unipress_facebook_core_meta', true ) &&
+					(
+						$settings['dl-ios-facebook-enabled'] ||
+						$settings['dl-android-facebook-enabled']
+					)
+				) {
 					echo '<meta property="og:type" content="website">' . "\n";
 					echo '<meta property="og:title" content="' . $title . '">' . "\n";
 				}
-					
+
 				/* iOS */
 				if ( $settings['dl-ios-enabled'] ) {
 					
