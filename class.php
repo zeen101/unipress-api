@@ -1407,7 +1407,6 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 								$restricted_post_type = $restriction['post_type'];
 								$is_restricted = true;
 								$post->unipress_article_restriction = $restriction;
-								$post->unipress_article_count = 0;
 								$post->unipress_article_limit = $restriction['allowed_value'];
 								
 								if ( !empty( $available_content[$restricted_post_type] ) ) {
@@ -1634,11 +1633,12 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 							}
 							
 							$post->unipress_article_count = count( $available_content[$restricted_post_type] );
+							$post->unipress_article_remaining = $post->unipress_article_limit - $post->unipress_article_count;
 						
 						}
 						
 						$serialized_available_content = maybe_serialize( $available_content );
-						update_option( 'unipress_cookie_' . $device_id, $serialized_available_content );
+						update_option( 'unipress_cookie_' . $device_id, $serialized_available_content, false );
 						
 					}
 					
