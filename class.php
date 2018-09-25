@@ -202,7 +202,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 			$settings = get_option( 'unipress-api' );
 			
 			//Fix for 1.17.6 switching from bool to string
-			if ( true === $settings['article-notifications'] ) {
+			if ( ! empty( $settings['article-notifications'] ) && true === $settings['article-notifications'] ) {
 				$settings['article-notifications'] = 'on';
 			} else {
 				$settings['article-notifications'] = 'off';
@@ -1456,14 +1456,16 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$post->attachments = apply_filters( 'unipress_api_get_article_attachments', $attachments, $post->ID );
 					
 					$featured_image_id = get_post_thumbnail_id( $post->ID );
-					$post->featured_image = wp_get_attachment_metadata( $featured_image_id );
-					$temp_attachment = get_post( $featured_image_id );
-					$post->featured_image['image_meta']['title']       = $temp_attachment->post_title;
-					$post->featured_image['image_meta']['alt']         = get_post_meta( $temp_attachment->ID, '_wp_attachment_image_alt', true );
-					$post->featured_image['image_meta']['description'] = $temp_attachment->post_content;
-					$post->featured_image['image_meta']['caption']     = $temp_attachment->post_excerpt;
-					$post->featured_image = apply_filters( 'unipress_api_get_article_featured_image', $post->featured_image, $post->ID, $featured_image_id );
-					
+					if ( !empty( $featured_image_id ) ) {
+						$post->featured_image = wp_get_attachment_metadata( $featured_image_id );
+						$temp_attachment = get_post( $featured_image_id );
+						$post->featured_image['image_meta']['title']       = $temp_attachment->post_title;
+						$post->featured_image['image_meta']['alt']         = get_post_meta( $temp_attachment->ID, '_wp_attachment_image_alt', true );
+						$post->featured_image['image_meta']['description'] = $temp_attachment->post_content;
+						$post->featured_image['image_meta']['caption']     = $temp_attachment->post_excerpt;
+						$post->featured_image = apply_filters( 'unipress_api_get_article_featured_image', $post->featured_image, $post->ID, $featured_image_id );
+					}
+
 					$post->author_meta = new stdClass();
 					$post->author_meta->user_login 		= get_the_author_meta( 'user_login', 		$post->post_author );
 					$post->author_meta->user_nicename 	= get_the_author_meta( 'user_nicename', 	$post->post_author );
