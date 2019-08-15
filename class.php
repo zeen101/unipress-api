@@ -1262,6 +1262,8 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					foreach ( $attachment_posts as $attachment ) {
 						$metadata = wp_get_attachment_metadata( $attachment->ID );
 						$temp_attachment = get_post( $attachment->ID );
+						$metadata = array();
+						$metadata['image_meta'] = array();
 						$metadata['image_meta']['title']       = $temp_attachment->post_title;
 						$metadata['image_meta']['alt']         = get_post_meta( $temp_attachment->ID, '_wp_attachment_image_alt', true );
 						$metadata['image_meta']['description'] = $temp_attachment->post_content;
@@ -1278,13 +1280,14 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$featured_image_id = get_post_thumbnail_id( $post->ID );
 
 				if ( !empty( $featured_image_id ) ) {
-	                                $post->featured_image = wp_get_attachment_metadata( $featured_image_id );
-	                                $temp_attachment = get_post( $featured_image_id );
-	                                $post->featured_image['image_meta']['title']       = $temp_attachment->post_title;
-	                                $post->featured_image['image_meta']['alt']         = get_post_meta( $temp_attachment->ID, '_wp_attachment_image_alt', true );
-	                                $post->featured_image['image_meta']['description'] = $temp_attachment->post_content;
-	                                $post->featured_image['image_meta']['caption']     = $temp_attachment->post_excerpt;
-	                                $post->featured_image = apply_filters( 'unipress_api_get_content_list_featured_image', $post->featured_image, $post->ID, $featured_image_id );
+		            $post->featured_image = wp_get_attachment_metadata( $featured_image_id );
+		            $temp_attachment = get_post( $featured_image_id );
+					$post->featured_image['image_meta'] = array();
+		            $post->featured_image['image_meta']['title']       = $temp_attachment->post_title;
+		            $post->featured_image['image_meta']['alt']         = get_post_meta( $temp_attachment->ID, '_wp_attachment_image_alt', true );
+		            $post->featured_image['image_meta']['description'] = $temp_attachment->post_content;
+		            $post->featured_image['image_meta']['caption']     = $temp_attachment->post_excerpt;
+		            $post->featured_image = apply_filters( 'unipress_api_get_content_list_featured_image', $post->featured_image, $post->ID, $featured_image_id );
 				}
 
 				$post->author_meta = new stdClass();
@@ -1389,47 +1392,46 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$article_id = url_to_postid( $_REQUEST['article-url'] );
 				}
 				$post = get_post( $article_id );
+				
+				if ( !empty( $post ) ) {
 
-				$response['http_code'] = 200;
-				
-				$post->unipress_restrictions = $restrictions;
-				$post->unipress_article_restriction = false;
-				$post->unipress_article_count = 0;
-				$post->unipress_article_limit = false;
-				$post->unipress_article_remaining = false;
-				
-				if ( !empty( $restrictions['post_types'] ) ) {
+					$post->unipress_restrictions = empty( $restrictions ) ? false : $restrictions;
+					$post->unipress_article_restriction = false;
+					$post->unipress_article_count = 0;
+					$post->unipress_article_limit = false;
+					$post->unipress_article_remaining = false;
 					
-					foreach( $restrictions['post_types'] as $key => $restriction ) {
+					if ( !empty( $restrictions['post_types'] ) ) {
 						
-						if ( !empty( $restriction['post_type'] ) && $post->post_type == $restriction['post_type'] ) {
-						
-							if ( 0 <= $restriction['allowed_value'] ) {
-						
-								$post_type_id = $key;
-								$restricted_post_type = $restriction['post_type'];
-								$is_restricted = true;
-								$post->unipress_article_restriction = $restriction;
-								$post->unipress_article_limit = $restriction['allowed_value'];
-								
-								if ( !empty( $available_content[$restricted_post_type] ) ) {
-									$post->unipress_article_count = count( $available_content[$restricted_post_type] );
-									$post->unipress_article_remaining = $restriction['allowed_value'] - count( $available_content[$restricted_post_type] );
-								} else {
-									$post->unipress_article_remaining = $restriction['allowed_value'];
-								}
+						foreach( $restrictions['post_types'] as $key => $restriction ) {
 							
-								break;
+							if ( !empty( $restriction['post_type'] ) && $post->post_type == $restriction['post_type'] ) {
+							
+								if ( 0 <= $restriction['allowed_value'] ) {
+							
+									$post_type_id = $key;
+									$restricted_post_type = $restriction['post_type'];
+									$is_restricted = true;
+									$post->unipress_article_restriction = $restriction;
+									$post->unipress_article_limit = $restriction['allowed_value'];
+									
+									if ( !empty( $available_content[$restricted_post_type] ) ) {
+										$post->unipress_article_count = count( $available_content[$restricted_post_type] );
+										$post->unipress_article_remaining = $restriction['allowed_value'] - count( $available_content[$restricted_post_type] );
+									} else {
+										$post->unipress_article_remaining = $restriction['allowed_value'];
+									}
+								
+									break;
+									
+								}
 								
 							}
 							
 						}
-						
+	
 					}
-
-				}
-				
-				if ( !empty( $post ) ) {
+					
 					$args = array(
 						'post_type' 		=> 'attachment',
 						'posts_per_page' 	=> -1,
@@ -1443,6 +1445,8 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 						foreach ( $attachment_posts as $attachment ) {
 							$metadata = wp_get_attachment_metadata( $attachment->ID );
 							$temp_attachment = get_post( $attachment->ID );
+							$metadata = array();
+							$metadata['image_meta'] = array();
 							$metadata['image_meta']['title']       = $temp_attachment->post_title;
 							$metadata['image_meta']['alt']         = get_post_meta( $temp_attachment->ID, '_wp_attachment_image_alt', true );
 							$metadata['image_meta']['description'] = $temp_attachment->post_content;
@@ -1461,13 +1465,14 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$featured_image_id = get_post_thumbnail_id( $post->ID );
 
 					if ( !empty( $featured_image_id ) ) {
-	                                        $post->featured_image = wp_get_attachment_metadata( $featured_image_id );
-	                                        $temp_attachment = get_post( $featured_image_id );
-	                                        $post->featured_image['image_meta']['title']       = $temp_attachment->post_title;
-	                                        $post->featured_image['image_meta']['alt']         = get_post_meta( $temp_attachment->ID, '_wp_attachment_image_alt', true );
-	                                        $post->featured_image['image_meta']['description'] = $temp_attachment->post_content;
-	                                        $post->featured_image['image_meta']['caption']     = $temp_attachment->post_excerpt;
-       	                                	$post->featured_image = apply_filters( 'unipress_api_get_article_featured_image', $post->featured_image, $post->ID, $featured_image_id );
+                        $post->featured_image = wp_get_attachment_metadata( $featured_image_id );
+                        $temp_attachment = get_post( $featured_image_id );
+						$post->featured_image['image_meta'] = array();
+                        $post->featured_image['image_meta']['title']       = $temp_attachment->post_title;
+                        $post->featured_image['image_meta']['alt']         = get_post_meta( $temp_attachment->ID, '_wp_attachment_image_alt', true );
+                        $post->featured_image['image_meta']['description'] = $temp_attachment->post_content;
+                        $post->featured_image['image_meta']['caption']     = $temp_attachment->post_excerpt;
+                    	$post->featured_image = apply_filters( 'unipress_api_get_article_featured_image', $post->featured_image, $post->ID, $featured_image_id );
 					}
 					
 					$post->author_meta = new stdClass();
@@ -1653,7 +1658,10 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$post->visible = true;
 				}
 				
-				$response['body'] = $post;
+				$response = array(
+					'http_code' => '200',
+					'body' 		=> $post,
+				);
 				
 				return apply_filters( 'unipress_api_get_article_response', $response, $device_id );
 			}
