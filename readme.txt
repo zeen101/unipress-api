@@ -3,7 +3,7 @@ Contributors: zeen101, layotte, pericson, endocreative
 Tags: mobile, app, api
 Requires at least: 3.3
 Tested up to: 4.9
-Stable tag: 1.18.4
+Stable tag: 1.18.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,9 @@ You must have:
 * UniPress API is GPL.
 
 == Changelog ==
+
+= 1.18.5 =
+* Fixed bug with PHP 7.3+ compat
 
 = 1.18.4 =
 * Fixing bug caused when article doesn't have a featured ID
