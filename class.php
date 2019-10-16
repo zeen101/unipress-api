@@ -1393,6 +1393,8 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				}
 				$post = get_post( $article_id );
 				
+				$response['http_code'] = 200;
+				
 				if ( !empty( $post ) ) {
 
 					$post->unipress_restrictions = empty( $restrictions ) ? false : $restrictions;
@@ -1658,10 +1660,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$post->visible = true;
 				}
 				
-				$response = array(
-					'http_code' => '200',
-					'body' 		=> $post,
-				);
+				$response['body'] = $post;
 				
 				return apply_filters( 'unipress_api_get_article_response', $response, $device_id );
 			}
