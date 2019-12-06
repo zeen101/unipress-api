@@ -2172,7 +2172,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				if ( !empty( $user ) ) {
 					$response = array(
 						'http_code' => '201',
-						'body' 		=> '', //unknown, yet
+						'body' 		=> array(), //unknown, yet
 					);
 				
 					//This device ID already has a user

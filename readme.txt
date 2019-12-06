@@ -2,8 +2,8 @@
 Contributors: zeen101, layotte, pericson, endocreative
 Tags: mobile, app, api
 Requires at least: 3.3
-Tested up to: 5.3 
-Stable tag: 1.18.6
+Tested up to: 5.4 
+Stable tag: 1.18.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -77,7 +77,10 @@ You must have:
 
 == Changelog ==
 
-= 1.8.6 =
+= 1.18.7=
+* Fixed bug with PHP 7.3+ compat 
+
+= 1.18.6 =
 * Fixing bug introduced in last update, which accidentally disabled post restrictions
 
 = 1.18.5 =
