@@ -3,7 +3,7 @@ Contributors: zeen101, layotte, pericson, endocreative
 Tags: mobile, app, api
 Requires at least: 3.3
 Tested up to: 5.4 
-Stable tag: 1.18.8
+Stable tag: 1.18.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,10 @@ You must have:
 * UniPress API is GPL.
 
 == Changelog ==
+
+= 1.18.9 =
+* Fixed bug with package 0
+* Added level price and expiry based on LP level until we can get package info
 
 = 1.18.8 =
 * Fixed bug that made Pushing Notifications setting look off when it was on
