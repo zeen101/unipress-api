@@ -1859,7 +1859,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					}
 				}
 				
-				if ( empty( $receipt['package'] ) ) {
+				if ( empty( $receipt['package'] ) && !is_numeric( $receipt['package'] ) ) {
 					throw new Exception( __( 'Missing Package Data.', 'unipress-api' ), 400 );
 				} else {
 					$level_id = unipress_get_leaky_paywall_subscription_level_level_id( $receipt['package'] );
@@ -1893,11 +1893,11 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					'level_id'			=> $level_id,
 					'subscriber_id' 	=> $customer_id, //need to get transaction ID
 					'subscriber_email' 	=> $email,
-					'price' 			=> '0.00', //need to get receipt price
+					'price' 			=> $level['price'], //need to get receipt price
 					'description' 		=> sprintf( __( '%s Subscription', 'unipress-api' ), $post['device-type'] ),
 					'payment_gateway' 	=> $post['device-type'],
 					'payment_status' 	=> 'active',
-					'expires' 			=> date_i18n( 'Y-m-d H:i:s', strtotime( '+1 month' ) ), //need to get receipt expiry
+					'expires' 			=> date_i18n( 'Y-m-d H:i:s', strtotime( '+' . $level['interval_count'] . ' ' . $level['interval'] ) ), //need to get receipt expiry
 					'interval' 			=> $level['interval'],
 					'interval_count' 	=> $level['interval_count'],
 					'plan' 				=> $level['interval_count'] . ' ' . strtoupper( substr( $level['interval'], 0, 1 ) ),
