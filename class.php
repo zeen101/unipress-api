@@ -2199,14 +2199,19 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					if ( $user->user_login !== $username ) { //don't need to update if we're the same username :)
 						$existing_user = get_user_by( 'login', $username );
 						if ( empty( $existing_user ) ) {
-							global $wpdb;							
-							$sql = "UPDATE {$wpdb->users} SET user_login = %s WHERE ID = %d";
-							$sql = $wpdb->prepare( $sql, $username, $user->ID );
-							$result = $wpdb->query( $sql );
-							if ( false === $result ) {
-								throw new Exception( __( 'Unable to update the subscriber username: Reason Unknown.', 'unipress-api' ), 400 );
+							if ( validate_username( $username ) ) {
+								global $wpdb;							
+								$sql = "UPDATE {$wpdb->users} SET user_login = %s WHERE ID = %d";
+								$sql = $wpdb->prepare( $sql, $username, $user->ID );
+								$result = $wpdb->query( $sql );
+								if ( false === $result ) {
+									throw new Exception( __( 'Unable to update the subscriber username: Reason Unknown.', 'unipress-api' ), 400 );
+								} else {
+									$response['body'][] = 'Subscriber Username Updated.';
+								}
 							} else {
-								$response['body'][] = 'Subscriber Username Updated.';
+								throw new Exception( __( 'Unable to update the subscriber username: This username is invalid because it uses illegal characters. Please enter a valid username.
+.', 'unipress-api' ), 400 );
 							}
 						} else {
 							throw new Exception( __( 'Username already exists.', 'unipress-api' ), 409 );
