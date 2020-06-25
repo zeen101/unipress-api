@@ -39,6 +39,8 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 	        
 	        add_action( 'wp_head', array( $this, 'deeplinks' ) );
 	        
+			add_action( 'edit_user_profile', array( $this, 'edit_user_profile' ), 100 );
+	        
 			include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 			if ( is_plugin_active( 'issuem-leaky-paywall/issuem-leaky-paywall.php' )
 				|| is_plugin_active( 'leaky-paywall/leaky-paywall.php' ) ) {
@@ -876,6 +878,34 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				}
 				
 			}
+		}
+		
+		function edit_user_profile( $user ) {
+			
+			?>
+			<table class="form-table">
+
+				<tr>
+					<th><label for="twitter">UniPress Device IDs</label></th>
+
+					<td>
+						<?php 
+
+							$devices = get_user_meta( $user->id, 'unipress-devices' );
+
+							foreach( $devices as $value ) {
+								echo '<pre>';
+								print_r( $value );
+								echo '</pre>';
+							}
+							
+						?>
+					</td>
+				</tr>
+				
+			</table>
+			<?php 		
+			
 		}
 		
 		function verify_secret_key( $app_id, $secret_key, $dev_mode=true ) {
