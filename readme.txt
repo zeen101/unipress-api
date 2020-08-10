@@ -3,7 +3,7 @@ Contributors: zeen101, layotte, pericson, endocreative
 Tags: mobile, app, api
 Requires at least: 3.3
 Tested up to: 5.4 
-Stable tag: 1.18.11
+Stable tag: 1.18.12
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,9 @@ You must have:
 * UniPress API is GPL.
 
 == Changelog ==
+
+= 1.18.12 =
+* Addidng a default product ID for subscriptions missing matching product IDs
 
 = 1.18.11 =
 * Show device IDs on user profile page
