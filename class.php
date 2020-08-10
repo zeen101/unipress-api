@@ -2103,6 +2103,10 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 								break;
 							}
 						}
+					
+						if ( empty( $return['product-id'] ) ) {
+							$return['product-id'] = 'default';
+						}
 					}
 					
 					$return['created-timestamp'] = unipress_api_get_user_leaky_paywall_created_timestamp_by_user_id( $user->ID );
