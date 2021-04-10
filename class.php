@@ -1400,11 +1400,6 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					throw new Exception( __( 'Missing Device ID.', 'unipress-api' ), 400 );
 				} else {
 					$device_id = $_REQUEST['device-id'];
-					if ( $this->leaky_paywall_enabled ) {
-						$restrictions = unipress_api_get_user_restrictions_by_device_id( $device_id );
-					} else {
-						$restrictions = array();
-					}
 				}
 				
 				global $post;
@@ -1426,7 +1421,17 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$response['http_code'] = 200;
 				
 				if ( !empty( $post ) ) {
-
+					
+					$cookie = get_option( 'unipress_cookie_' . $device_id, array() );
+					if ( !empty( $cookie ) )
+						$available_content = maybe_unserialize( $cookie );
+						
+					if ( $this->leaky_paywall_enabled ) {
+						$restrictions = unipress_api_get_user_restrictions_by_device_id( $device_id );
+					} else {
+						$restrictions = array();
+					}
+					
 					$post->unipress_restrictions = empty( $restrictions ) ? false : $restrictions;
 					$post->unipress_article_restriction = false;
 					$post->unipress_article_count = 0;
@@ -1436,25 +1441,29 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					if ( !empty( $restrictions['post_types'] ) ) {
 						
 						foreach( $restrictions['post_types'] as $key => $restriction ) {
-							
-							if ( !empty( $restriction['post_type'] ) && $post->post_type == $restriction['post_type'] ) {
-							
-								if ( 0 <= $restriction['allowed_value'] ) {
-							
-									$post_type_id = $key;
-									$restricted_post_type = $restriction['post_type'];
-									$is_restricted = true;
-									$post->unipress_article_restriction = $restriction;
-									$post->unipress_article_limit = $restriction['allowed_value'];
-									
-									if ( !empty( $available_content[$restricted_post_type] ) ) {
-										$post->unipress_article_count = count( $available_content[$restricted_post_type] );
-										$post->unipress_article_remaining = $restriction['allowed_value'] - count( $available_content[$restricted_post_type] );
-									} else {
-										$post->unipress_article_remaining = $restriction['allowed_value'];
-									}
+
+							if ( !empty( $restriction['post_type'] ) ) {
 								
-									break;
+								if ( $post->post_type == $restriction['post_type'] || 'ALL' == $restriction['post_type'] ) {
+									
+									if ( 0 <= $restriction['allowed_value'] ) {
+								
+										$post_type_id = $key;
+										$restricted_post_type = $restriction['post_type'];
+										$is_restricted = true;
+										$post->unipress_article_restriction = $restriction;
+										$post->unipress_article_limit = $restriction['allowed_value'];
+										
+										if ( !empty( $available_content[$restricted_post_type] ) ) {
+											$post->unipress_article_count = count( $available_content[$restricted_post_type] );
+											$post->unipress_article_remaining = $restriction['allowed_value'] - count( $available_content[$restricted_post_type] );
+										} else {
+											$post->unipress_article_remaining = $restriction['allowed_value'];
+										}
+									
+										break;
+										
+									}
 									
 								}
 								
@@ -1564,7 +1573,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					$post = apply_filters( 'unipress_api_get_article_post', $post );
 					
 				}
-				
+								
 				if ( $this->leaky_paywall_enabled ) {
 					
 					$visibility = get_post_meta( $post->ID, '_issuem_leaky_paywall_visibility', true );
@@ -1634,11 +1643,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 								break;
 						}
 						$expiration = time() + ( $lp_settings['cookie_expiration'] * $multiplier );
-						
-						$cookie = get_option( 'unipress_cookie_' . $device_id, array() );
-						if ( !empty( $cookie ) )
-							$available_content = maybe_unserialize( $cookie );
-						
+												
 						if ( empty( $available_content[$restricted_post_type] ) )
 							$available_content[$restricted_post_type] = array();							
 					
@@ -1653,7 +1658,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 							
 						}
 													
-						if( -1 != $restrictions['post_types'][$post_type_id]['allowed_value'] ) { //-1 means unlimited
+						if ( -1 != $restrictions['post_types'][$post_type_id]['allowed_value'] ) { //-1 means unlimited
 							
 							$post->unipress_article_limit = $restrictions['post_types'][$post_type_id]['allowed_value'];
 	

@@ -188,7 +188,16 @@ if ( !function_exists( 'unipress_api_get_user_restrictions_by_device_id' ) ) {
 	    
 		if ( false !== $level_id && !empty( $lp_settings['levels'][$level_id] ) ) {
 			$restrictions = $lp_settings['levels'][$level_id];
-		}
+		} else if ( !empty( $lp_settings['combined_restrictions_total_allowed'] ) ) {
+		    $restrictions = array( 
+		    	'post_types' => array(
+		    		array( 
+			    		'post_type' => 'ALL',
+			    		'allowed_value' => $lp_settings['combined_restrictions_total_allowed']
+					)
+				)
+		    );
+	    }
 
 		return $restrictions;
 	}
