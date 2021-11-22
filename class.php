@@ -1938,7 +1938,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					'plan' 				=> $level['interval_count'] . ' ' . strtoupper( substr( $level['interval'], 0, 1 ) ),
 				);
 				
-				$unique_hash = leaky_paywall_hash( $email );
+				$unique_hash = create_leaky_paywall_login_hash( $email );
 										
 				if ( $existing_customer ) {
 					$user_id = leaky_paywall_update_subscriber( $unique_hash, $email, $customer_id, $meta );
