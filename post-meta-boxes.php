@@ -3,7 +3,7 @@
 if ( !function_exists( 'unipress_register_meta_boxes' ) ) {
 	function unipress_register_meta_boxes() {
 		$settings = get_unipress_api_settings();
-    	add_meta_box( 'unipress-meta-box', __( 'UniPress Options', 'unipress-api' ), 'unipress_meta_box', apply_filters( 'unipress_push_notification_article_notification_post_types', array( 'post', 'article' ) ) );
+    	add_meta_box( 'unipress-meta-box', __( 'UniPress Options', 'unipress-api' ), 'unipress_meta_box', apply_filters( 'unipress_push_notification_article_notification_post_types', array( 'post', 'article', 'podcast' ) ) );
 	}
 	add_action( 'add_meta_boxes', 'unipress_register_meta_boxes' );
 }

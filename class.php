@@ -959,7 +959,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					
 				} else if ( 'on' === $article_notification ) {
 
-                    if ( ! in_array( $post->post_type, apply_filters( 'unipress_push_notification_article_notification_post_types', array( 'post', 'article' ) ) ) ) {
+                    if ( ! in_array( $post->post_type, apply_filters( 'unipress_push_notification_article_notification_post_types', array( 'post', 'article', 'podcast' ) ) ) ) {
                         return;
                     }
 					
