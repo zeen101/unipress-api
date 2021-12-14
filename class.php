@@ -891,7 +891,7 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 					<td>
 						<?php 
 
-							$devices = get_user_meta( $user->id, 'unipress-devices' );
+							$devices = get_user_meta( $user->ID, 'unipress-devices' );
 
 							foreach( $devices as $value ) {
 								echo '<pre>';
