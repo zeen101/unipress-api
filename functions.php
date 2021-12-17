@@ -182,13 +182,31 @@ add_action( 'unipress_api_token_cleanup_schedule', 'unipress_api_token_cleanup' 
 if ( !function_exists( 'unipress_api_get_user_restrictions_by_device_id' ) ) {
 	
 	function unipress_api_get_user_restrictions_by_device_id( $device_id ) {
-	    $lp_settings = get_leaky_paywall_settings();
+	    $lp_settings  = get_leaky_paywall_settings();
 	    $restrictions = $lp_settings['restrictions'];
-	    $level_id = unipress_api_get_user_level_id_by_device_id( $device_id );
 	    
+	    if ( $subscription = unipress_api_get_user_subscription_by_device_id( $device_id ) ) {
+		
+		    $level_id     = $subscription['level_id'];
+		    
+		    if ( time() > $subscription['expires'] ) {
+			    
+			    $level_id = false;
+		    
+		    } else if ( 'active' != $subscription['status'] ) {
+			
+				$level_id = false;    
+			    
+		    }
+		
+	    }
+		    
 		if ( false !== $level_id && !empty( $lp_settings['levels'][$level_id] ) ) {
+			
 			$restrictions = $lp_settings['levels'][$level_id];
+			
 		} else if ( !empty( $lp_settings['combined_restrictions_total_allowed'] ) ) {
+			
 		    $restrictions = array( 
 		    	'post_types' => array(
 		    		array( 
@@ -197,9 +215,38 @@ if ( !function_exists( 'unipress_api_get_user_restrictions_by_device_id' ) ) {
 					)
 				)
 		    );
+		    
 	    }
-
+	    
 		return $restrictions;
+	}
+	
+}
+
+if ( !function_exists( 'unipress_api_get_user_subscription_by_device_id' ) ) {
+	
+	function unipress_api_get_user_subscription_by_device_id( $device_id ) {
+		
+		if ( $user = unipress_api_get_user_by_device_id( $device_id ) ) {
+			
+			$settings = get_leaky_paywall_settings();
+			$mode = 'off' === $settings['test_mode'] ? 'live' : 'test';
+
+			$subscription['level_id'] = get_user_meta( $user->ID, '_issuem_leaky_paywall_' . $mode . '_level_id', true );
+			$subscription['level_id'] = apply_filters( 'get_leaky_paywall_subscription_level_level_id', $subscription['level_id'] );
+
+			$subscription['expires'] = get_user_meta( $user->ID, '_issuem_leaky_paywall_' . $mode . '_expires', true );
+			$subscription['expires'] = apply_filters( 'get_leaky_paywall_subscription_level_expires', $subscription['expires'] );
+
+			$subscription['status'] = get_user_meta( $user->ID, '_issuem_leaky_paywall_' . $mode . '_payment_status', true );
+			$subscription['status'] = apply_filters( 'get_leaky_paywall_subscription_level_status', $subscription['status']  );
+
+			return $subscription;
+
+		}
+		
+		return false;
+		
 	}
 	
 }
