@@ -189,7 +189,7 @@ if ( !function_exists( 'unipress_api_get_user_restrictions_by_device_id' ) ) {
 		
 		    $level_id     = $subscription['level_id'];
 		    
-		    if ( time() > $subscription['expires'] ) {
+		    if ( time() > strtotime( $subscription['expires'] ) ) {
 			    
 			    $level_id = false;
 		    
@@ -217,6 +217,8 @@ if ( !function_exists( 'unipress_api_get_user_restrictions_by_device_id' ) ) {
 		    );
 		    
 	    }
+	    
+	    $restrictions['sub'] = $subscription;
 	    
 		return $restrictions;
 	}
