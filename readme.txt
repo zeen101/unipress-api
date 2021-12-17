@@ -3,7 +3,7 @@ Contributors: zeen101, layotte, pericson, endocreative
 Tags: mobile, app, api
 Requires at least: 3.3
 Tested up to: 5.9
-Stable tag: 1.18.15
+Stable tag: 1.18.16
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,9 @@ You must have:
 * UniPress API is GPL.
 
 == Changelog ==
+
+= 1.18.16 =
+* Update to verify subscription status of unipress user before displaying content
 
 = 1.18.15 =
 * Fixing deprecated ID warning
