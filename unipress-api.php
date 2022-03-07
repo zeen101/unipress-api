@@ -11,7 +11,7 @@ Plugin Name: UniPress API
 Plugin URI: http://getunipress.com/
 Description: A premium WordPress plugin by UniPress.
 Author: UniPress Development Team
-Version: 1.18.17
+Version: 1.18.18
 Author URI: http://getunipress.com/
 Tags:
 */
@@ -19,7 +19,7 @@ Tags:
 //Define global variables...
 define( 'UNIPRESS_API_NAME', 		'UniPress API' );
 define( 'UNIPRESS_API_SLUG', 		'unipress-api' );
-define( 'UNIPRESS_API_VERSION', 	'1.18.17' );
+define( 'UNIPRESS_API_VERSION', 	'1.18.18' );
 define( 'UNIPRESS_API_DB_VERSION', 	'1.0.0' );
 define( 'UNIPRESS_API_URL', 		plugin_dir_url( __FILE__ ) );
 define( 'UNIPRESS_API_PATH', 		plugin_dir_path( __FILE__ ) );
