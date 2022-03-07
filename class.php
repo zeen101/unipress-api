@@ -941,8 +941,9 @@ if ( ! class_exists( 'UniPress_API' ) ) {
 				$settings = $this->get_settings();
 				
 				$delivery_type = !empty( $_POST['delivery-type'] ) ? $_POST['delivery-type'] : 'all_users';
-				if ( ! $article_notification = get_post_meta( $post->ID, 'unipress_article_notification', true ) ) {
-					$article_notification = $settings['article-notifications'];
+				
+				if ( !empty( $_POST['article-notification'] ) ) {
+					$article_notification = 'on';
 				}
 
 				if ( 'categories' === $delivery_type ) {
